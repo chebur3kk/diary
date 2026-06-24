@@ -4,99 +4,198 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>Дневник</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2314171C'/%3E%3Cg fill='none' stroke='%23FF4F2B' stroke-width='7' stroke-linecap='round'%3E%3Cline x1='18' y1='50' x2='34' y2='50'/%3E%3Cline x1='66' y1='50' x2='82' y2='50'/%3E%3Crect x='34' y='38' width='32' height='24' rx='3' fill='%23FF4F2B' stroke='none'/%3E%3Cline x1='12' y1='38' x2='12' y2='62'/%3E%3Cline x1='88' y1='38' x2='88' y2='62'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23101317'/%3E%3Cg fill='none' stroke='%23FF4D2E' stroke-width='7' stroke-linecap='round'%3E%3Cline x1='18' y1='50' x2='34' y2='50'/%3E%3Cline x1='66' y1='50' x2='82' y2='50'/%3E%3Crect x='34' y='38' width='32' height='24' rx='3' fill='%23FF4D2E' stroke='none'/%3E%3Cline x1='12' y1='38' x2='12' y2='62'/%3E%3Cline x1='88' y1='38' x2='88' y2='62'/%3E%3C/g%3E%3C/svg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Дневник">
-<meta name="theme-color" content="#14171C">
+<meta name="theme-color" content="#101317">
 <style>
 :root{
-  --bg:#14171C;
-  --surface:#1C2128;
-  --surface2:#232932;
-  --line:#2C3340;
-  --accent:#FF4F2B;
+  --bg:#101317;
+  --bg-elevated:#15181E;
+  --surface:#1A1F27;
+  --surface2:#212733;
+  --surface-glass:rgba(26,31,39,0.72);
+  --line:#262C38;
+  --line-soft:rgba(255,255,255,0.06);
+  --accent:#FF4D2E;
+  --accent-soft:rgba(255,77,46,0.14);
   --accent-dim:#7A2A1B;
-  --text:#E8EAED;
-  --sub:#8B92A0;
+  --text:#EDEFF2;
+  --sub:#7D8590;
+  --sub-dim:#565D68;
   --good:#3DD68C;
+  --good-soft:rgba(61,214,140,0.14);
   --warn:#F2C14E;
+  --shadow-card:0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -8px rgba(0,0,0,0.5);
+  --shadow-pop:0 12px 32px -8px rgba(0,0,0,0.6);
+  --ease:cubic-bezier(0.16,1,0.3,1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
   -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;}
-body{padding-bottom:90px;}
-.num{font-family:"SF Mono","SFMono-Regular",Menlo,monospace;}
+body{
+  padding-bottom:96px;
+  background-image:radial-gradient(ellipse 800px 400px at 50% -10%, rgba(255,77,46,0.07), transparent);
+}
+.num{font-family:"SF Mono","SFMono-Regular",Menlo,monospace;letter-spacing:-0.01em;}
 .h-title{
   font-weight:800;letter-spacing:0.04em;text-transform:uppercase;
 }
 header.top{
   position:sticky;top:0;z-index:50;
-  background:linear-gradient(180deg,rgba(20,23,28,0.97),rgba(20,23,28,0.88));
-  backdrop-filter:blur(10px);
+  background:linear-gradient(180deg,rgba(16,19,23,0.97),rgba(16,19,23,0.85));
+  backdrop-filter:blur(20px) saturate(1.4);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);
   padding:calc(env(safe-area-inset-top) + 14px) 20px 14px;
-  border-bottom:1px solid var(--line);
+  border-bottom:1px solid var(--line-soft);
 }
 header.top .row{display:flex;align-items:center;justify-content:space-between;}
-header.top .brand{font-size:13px;letter-spacing:0.12em;color:var(--sub);font-weight:700;text-transform:uppercase;}
-header.top .day{font-size:22px;font-weight:800;letter-spacing:0.01em;margin-top:2px;}
-header.top .accentbar{width:28px;height:4px;background:var(--accent);border-radius:2px;margin-top:8px;}
+header.top .brand{font-size:11px;letter-spacing:0.14em;color:var(--sub-dim);font-weight:800;text-transform:uppercase;}
+header.top .day{font-size:21px;font-weight:800;letter-spacing:-0.01em;margin-top:3px;}
+header.top .accentbar{width:24px;height:3px;background:var(--accent);border-radius:2px;margin-top:10px;box-shadow:0 0 12px rgba(255,77,46,0.5);}
 
 main{padding:18px 16px 0;max-width:560px;margin:0 auto;}
 .card{
-  background:var(--surface);border:1px solid var(--line);
-  border-radius:16px;padding:16px;margin-bottom:14px;
+  background:var(--surface);border:1px solid var(--line-soft);
+  border-radius:18px;padding:18px;margin-bottom:14px;
+  box-shadow:var(--shadow-card);
+  transition:transform .2s var(--ease), border-color .2s;
 }
-.card-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
-.card-h .t{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sub);font-weight:700;}
+.card-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+.card-h .t{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sub);font-weight:800;}
 .card-h .v{font-size:12px;color:var(--accent);font-weight:700;}
 
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.kpi{background:var(--surface2);border-radius:12px;padding:12px 8px;text-align:center;}
-.kpi .lab{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
-.kpi .val{font-size:20px;font-weight:800;}
+.kpi{
+  background:var(--surface2);border-radius:14px;padding:13px 8px;text-align:center;
+  border:1px solid transparent;transition:border-color .2s,transform .15s;
+}
+.kpi .lab{font-size:9.5px;color:var(--sub);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;font-weight:700;}
+.kpi .val{font-size:21px;font-weight:800;letter-spacing:-0.01em;}
 .kpi .val.accent{color:var(--accent);}
 .bar-wrap{height:8px;background:var(--surface2);border-radius:6px;overflow:hidden;margin-top:10px;}
-.bar-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .3s;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--accent-dim),var(--accent));border-radius:6px;transition:width .4s var(--ease);}
 
 nav.tabs{
   position:fixed;bottom:0;left:0;right:0;z-index:60;
-  background:rgba(28,33,40,0.95);backdrop-filter:blur(14px);
-  border-top:1px solid var(--line);
+  background:rgba(21,24,30,0.92);backdrop-filter:blur(24px) saturate(1.5);
+  -webkit-backdrop-filter:blur(24px) saturate(1.5);
+  border-top:1px solid var(--line-soft);
   padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);
   display:flex;justify-content:space-around;
 }
 nav.tabs button{
-  background:none;border:none;color:var(--sub);font-size:10px;font-weight:700;
-  letter-spacing:0.04em;text-transform:uppercase;display:flex;flex-direction:column;
-  align-items:center;gap:4px;padding:6px 10px;border-radius:10px;flex:1;
+  background:none;border:none;color:var(--sub-dim);font-size:9.5px;font-weight:700;
+  letter-spacing:0.01em;text-transform:uppercase;display:flex;flex-direction:column;
+  align-items:center;gap:4px;padding:7px 4px;border-radius:12px;flex:1;min-width:0;white-space:nowrap;
+  transition:color .2s,background .2s;
 }
-nav.tabs button svg{width:22px;height:22px;}
-nav.tabs button.active{color:var(--accent);}
+nav.tabs button svg{width:21px;height:21px;transition:stroke .2s;}
+nav.tabs button.active{color:var(--accent);background:var(--accent-soft);}
 nav.tabs button.active svg{stroke:var(--accent);}
 
 .view{display:none;}
-.view.active{display:block;animation:fadeIn .25s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.view.active{display:block;animation:fadeIn .3s var(--ease);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 .section-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sub);font-weight:700;margin:18px 4px 8px;}
 
-.day-pill-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:4px;-webkit-overflow-scrolling:touch;}
+.day-pill-wrap{position:relative;margin:0 -16px 8px;}
+.day-pill-wrap::before,.day-pill-wrap::after{
+  content:'';position:absolute;top:0;bottom:4px;width:24px;z-index:2;pointer-events:none;
+  transition:opacity .2s;
+}
+.day-pill-wrap::before{left:0;background:linear-gradient(90deg,var(--bg),transparent);opacity:0;}
+.day-pill-wrap::after{right:0;background:linear-gradient(270deg,var(--bg),transparent);opacity:0;}
+.day-pill-wrap.scroll-left::before{opacity:1;}
+.day-pill-wrap.scroll-right::after{opacity:1;}
+.day-pill-row{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin-bottom:0;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
 .day-pill-row::-webkit-scrollbar{display:none;}
 .day-pill{
-  flex:0 0 auto;padding:10px 14px;border-radius:12px;background:var(--surface);
-  border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--sub);white-space:nowrap;
+  flex:0 0 auto;padding:10px 16px;border-radius:13px;background:var(--surface);
+  border:1px solid var(--line-soft);font-size:13px;font-weight:700;color:var(--sub);white-space:nowrap;
+  transition:background .25s,color .25s,border-color .25s,transform .15s;
 }
-.day-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.day-pill:active{transform:scale(0.96);}
+.day-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 10px -2px rgba(255,77,46,0.4);}
+.scroll-dots{display:flex;justify-content:center;gap:4px;margin:6px 0 10px;}
+.scroll-dots .dot{width:5px;height:5px;border-radius:50%;background:var(--line);transition:background .2s,width .2s;}
+.scroll-dots .dot.active{background:var(--accent);width:14px;border-radius:3px;}
 
 .exercise{
-  background:var(--surface2);border-radius:12px;padding:12px;margin-bottom:8px;
+  background:var(--surface2);border-radius:14px;padding:13px;margin-bottom:8px;
+  border:1px solid transparent;transition:border-color .2s;
 }
 .exercise .ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.exercise .ex-name{font-weight:700;font-size:15px;flex:1;}
+.exercise .ex-name{font-weight:700;font-size:15px;flex:1;letter-spacing:-0.005em;}
 .exercise .ex-meta{font-size:12px;color:var(--sub);margin-top:2px;}
-.exercise .ex-comment{font-size:12px;color:var(--accent);margin-top:4px;}
+.exercise .ex-comment{font-size:12px;color:var(--accent);margin-top:4px;font-weight:600;}
+.exercise .ex-last-perf{font-size:11px;color:var(--sub-dim);margin-top:4px;font-weight:700;letter-spacing:0.01em;}
+.rpe-select{
+  flex:0 0 56px;background:var(--bg);border:1px solid var(--line-soft);border-radius:9px;
+  color:var(--sub);padding:8px 2px;font-size:11px;text-align:center;font-family:inherit;
+}
+.ex-note-input{
+  width:100%;margin-top:10px;background:var(--bg);border:1px solid var(--line-soft);
+  border-radius:9px;color:var(--text);padding:9px;font-size:12px;font-family:inherit;
+  resize:vertical;min-height:36px;transition:border-color .2s;
+}
+.ex-note-input:focus{border-color:var(--accent);outline:none;}
+.reminder-card{
+  display:flex;align-items:center;gap:10px;background:var(--surface);
+  border:1px solid var(--line-soft);border-left:3px solid var(--warn);
+  border-radius:14px;padding:13px 14px;margin-bottom:10px;
+  box-shadow:var(--shadow-card);
+}
+.reminder-card .ric{font-size:18px;flex-shrink:0;}
+.reminder-card .rtext{flex:1;font-size:13px;color:var(--text);line-height:1.4;}
+.reminder-card .rtext b{color:var(--warn);}
+.reminder-card button{background:none;border:none;color:var(--sub);font-size:18px;padding:0 4px;flex-shrink:0;}
+.search-btn{
+  background:var(--surface2);border:1px solid var(--line);color:var(--sub);
+  width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin:0 8px;
+}
+.search-btn svg{width:18px;height:18px;}
+.search-input-wrap{position:sticky;top:0;background:var(--surface);padding-bottom:10px;z-index:5;}
+.search-input-wrap input{
+  width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:12px;
+  color:var(--text);padding:12px 14px;font-size:15px;font-family:inherit;
+}
+.search-results{margin-top:4px;}
+.search-result-group{margin-bottom:6px;}
+.search-result-group .srg-title{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin:12px 0 6px;}
+.search-result-item{
+  display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer;
+}
+.search-result-item:last-child{border-bottom:none;}
+.search-result-item .sri-icon{font-size:16px;flex-shrink:0;}
+.search-result-item .sri-name{font-size:14px;font-weight:600;color:var(--text);}
+.search-result-item .sri-meta{font-size:11px;color:var(--sub);margin-top:2px;}
+.storage-error-banner{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  background:#7A2A1B;color:#fff;font-size:12px;font-weight:600;
+  padding:10px 16px;padding-top:calc(env(safe-area-inset-top) + 10px);
+  text-align:center;line-height:1.4;
+}
+.photo-actions{display:flex;gap:8px;margin-bottom:12px;}
+.photo-actions .btn-secondary{flex:1;}
+.photo-actions .btn-ghost{flex-shrink:0;padding:13px 12px;}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.photo-thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--surface2);}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.photo-thumb .pt-date{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,0.75));color:#fff;font-size:9px;font-weight:700;padding:10px 4px 4px;text-align:center;}
+.photo-thumb .pt-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:13px;line-height:1;}
+.photo-note{font-size:11px;color:var(--sub);margin-top:10px;line-height:1.4;}
+.compare-wrap{position:relative;width:100%;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:var(--surface2);touch-action:none;}
+.compare-wrap img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-select:none;}
+.compare-after-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;}
+.compare-handle{position:absolute;top:0;bottom:0;width:3px;background:#fff;cursor:ew-resize;transform:translateX(-50%);}
+.compare-handle::after{content:'';position:absolute;top:50%;left:50%;width:36px;height:36px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.compare-handle::before{content:'↔';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;color:#222;font-weight:700;font-size:14px;}
+.compare-label{position:absolute;top:10px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,0.5);padding:4px 10px;border-radius:20px;}
 .ex-actions{display:flex;gap:6px;}
 .icon-btn{
   background:none;border:none;color:var(--sub);padding:4px;border-radius:8px;
@@ -117,46 +216,81 @@ nav.tabs button.active svg{stroke:var(--accent);}
 }
 
 .btn-primary{
-  background:var(--accent);color:#fff;border:none;border-radius:12px;
-  padding:13px;font-size:15px;font-weight:700;width:100%;letter-spacing:0.01em;
+  background:linear-gradient(180deg, #FF5E40, var(--accent));color:#fff;border:none;border-radius:14px;
+  padding:14px;font-size:15px;font-weight:700;width:100%;letter-spacing:0.01em;
+  box-shadow:0 4px 16px -2px rgba(255,77,46,0.4);
+  transition:transform .15s var(--ease),box-shadow .15s;
 }
+.btn-primary:active{transform:scale(0.97);box-shadow:0 2px 8px -2px rgba(255,77,46,0.3);}
+.btn-primary:disabled{background:var(--surface2);box-shadow:none;color:var(--sub-dim);}
 .btn-secondary{
-  background:var(--surface2);color:var(--text);border:1px solid var(--line);
-  border-radius:12px;padding:13px;font-size:14px;font-weight:600;width:100%;
+  background:var(--surface2);color:var(--text);border:1px solid var(--line-soft);
+  border-radius:14px;padding:14px;font-size:14px;font-weight:600;width:100%;
+  transition:transform .15s var(--ease),background .15s;
 }
+.btn-secondary:active{transform:scale(0.97);background:var(--surface);}
 .btn-ghost{
   background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;
-  padding:8px;
+  padding:8px;transition:opacity .15s;
 }
+.btn-ghost:active{opacity:0.6;}
 
 .input-field{margin-bottom:10px;}
 .input-field label{font-size:12px;color:var(--sub);display:block;margin-bottom:5px;font-weight:600;}
 .input-field input,.input-field select,.input-field textarea{
-  width:100%;background:var(--surface2);border:1px solid var(--line);
-  border-radius:10px;color:var(--text);padding:11px;font-size:15px;font-family:inherit;
+  width:100%;background:var(--surface2);border:1px solid var(--line-soft);
+  border-radius:11px;color:var(--text);padding:11px;font-size:15px;font-family:inherit;
+  transition:border-color .2s,box-shadow .2s;
+}
+.input-field input:focus,.input-field select:focus,.input-field textarea:focus{
+  border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft);
 }
 .input-field textarea{resize:vertical;min-height:60px;}
 
 .modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;
+  position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;
   display:none;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(2px);
 }
-.modal-overlay.show{display:flex;}
+.modal-overlay.show{display:flex;animation:overlayFade .2s ease;}
+@keyframes overlayFade{from{opacity:0;}to{opacity:1;}}
 .modal{
-  background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:560px;
-  max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(env(safe-area-inset-bottom) + 24px);
-  animation:slideUp .25s ease;
+  background:var(--bg-elevated);border-radius:24px 24px 0 0;width:100%;max-width:560px;
+  max-height:85vh;overflow-y:auto;padding:22px;padding-bottom:calc(env(safe-area-inset-bottom) + 24px);
+  animation:slideUp .3s var(--ease);
+  box-shadow:var(--shadow-pop);
+  border-top:1px solid var(--line-soft);
+}
+.modal::before{
+  content:'';display:block;width:36px;height:4px;background:var(--line);border-radius:3px;
+  margin:0 auto 16px;
 }
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-.modal-h h3{margin:0;font-size:18px;font-weight:800;}
+.modal-h h3{margin:0;font-size:18px;font-weight:800;letter-spacing:-0.01em;}
 .modal-h button{background:none;border:none;color:var(--sub);font-size:22px;}
 
-.food-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);}
+.food-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-soft);}
 .food-item:last-child{border-bottom:none;}
 .food-item .fname{font-weight:600;font-size:14px;}
 .food-item .fmacro{font-size:11px;color:var(--sub);margin-top:2px;}
-.cat-title{font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 6px;}
+.cat-title{font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;margin:16px 0 8px;}
+.lab-add-result-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;padding:4px 0;margin-top:2px;}
+.lab-item{transition:background .3s;border-radius:8px;}
+.lab-item-done{opacity:0.85;}
+@keyframes labFlash{0%{background:rgba(255,79,43,0.18);}100%{background:transparent;}}
+.lab-flash{animation:labFlash .9s ease;}
+.nutri-explain{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.nutri-explain .nx-text{font-size:12px;color:var(--sub);line-height:1.5;flex:1;}
+.nutri-explain button{background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;flex-shrink:0;white-space:nowrap;}
+.period-tabs{display:flex;gap:6px;margin-bottom:10px;}
+.period-tab{flex:1;background:var(--surface2);border:1px solid var(--line-soft);color:var(--sub);font-size:12px;font-weight:700;padding:8px 0;border-radius:10px;transition:background .2s,color .2s,transform .15s;}
+.period-tab:active{transform:scale(0.96);}
+.period-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 10px -2px rgba(255,77,46,0.4);}
+.metric-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.metric-tab{flex:1;min-width:64px;background:var(--surface2);border:1px solid var(--line-soft);color:var(--sub);font-size:12px;font-weight:700;padding:8px 4px;border-radius:10px;transition:background .2s,color .2s,transform .15s;}
+.metric-tab:active{transform:scale(0.96);}
+.metric-tab.active{background:var(--surface);color:var(--accent);border-color:var(--accent);}
 
 table.simple{width:100%;border-collapse:collapse;font-size:13px;}
 table.simple th{text-align:left;color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:0.04em;padding:6px 4px;border-bottom:1px solid var(--line);}
@@ -172,14 +306,32 @@ table.simple input{
 
 .toast{
   position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
-  background:var(--surface2);border:1px solid var(--line);color:var(--text);
-  padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;
+  background:var(--surface2);border:1px solid var(--line-soft);color:var(--text);
+  padding:11px 20px;border-radius:30px;font-size:13px;font-weight:600;
   z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;
+  backdrop-filter:blur(12px);box-shadow:var(--shadow-pop);
 }
 .toast.show{opacity:1;}
 
+.undo-snackbar{
+  position:fixed;bottom:100px;left:16px;right:16px;max-width:528px;margin:0 auto;
+  background:var(--surface2);border:1px solid var(--line-soft);color:var(--text);
+  padding:13px 16px;border-radius:16px;font-size:13px;font-weight:600;
+  z-index:310;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  opacity:0;transform:translateY(10px);transition:opacity .25s var(--ease),transform .25s var(--ease);pointer-events:none;
+  box-shadow:var(--shadow-pop);backdrop-filter:blur(16px);
+}
+.undo-snackbar.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+.undo-snackbar button{background:none;border:none;color:var(--accent);font-weight:700;font-size:13px;padding:4px 8px;flex-shrink:0;}
+
+.confirm-text{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:18px;}
+.confirm-actions{display:flex;gap:10px;}
+.confirm-actions button{flex:1;}
+.btn-danger{background:#C23B26;color:#fff;border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;width:100%;box-shadow:0 4px 16px -2px rgba(194,59,38,0.4);transition:transform .15s var(--ease);}
+.btn-danger:active{transform:scale(0.97);}
+
 .swipe-del{
-  background:#B23A2B;color:#fff;border:none;border-radius:0 12px 12px 0;
+  background:#C23B26;color:#fff;border:none;border-radius:0 14px 14px 0;
   font-size:13px;font-weight:700;padding:0 16px;
 }
 .row-flex{display:flex;align-items:stretch;border-radius:12px;overflow:hidden;margin-bottom:8px;}
@@ -203,6 +355,9 @@ table.simple input{
       <div class="brand">Спортивный дневник</div>
       <div class="day" id="headerDate">—</div>
     </div>
+    <button class="search-btn" onclick="openGlobalSearch()" aria-label="Поиск">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
     <div style="text-align:right">
       <div class="brand" id="headerWeekLabel">Неделя —</div>
       <div class="day" id="headerWeight" style="color:var(--accent)">—</div>
@@ -215,17 +370,38 @@ table.simple input{
 
   <!-- ============ ГЛАВНАЯ ============ -->
   <section class="view active" id="view-home">
+    <div id="smartReminders"></div>
     <div class="card">
       <div class="card-h"><span class="t">Сегодня</span><span class="v" id="homeToday">—</span></div>
       <div class="kpi-grid">
         <div class="kpi"><div class="lab">Вес</div><div class="val num accent" id="kpiWeight">—</div></div>
-        <div class="kpi"><div class="lab">Тренировок</div><div class="val num" id="kpiWorkouts">0</div></div>
+        <div class="kpi"><div class="lab">Калории</div><div class="val num" id="kpiKcal">—</div></div>
+        <div class="kpi"><div class="lab">Белки</div><div class="val num" id="kpiProtein">—</div></div>
+      </div>
+      <div class="kpi-grid" style="margin-top:8px">
+        <div class="kpi"><div class="lab">Тренировка</div><div class="val num" id="kpiWorkoutToday">—</div></div>
+        <div class="kpi"><div class="lab">Тренировок/нед</div><div class="val num" id="kpiWorkouts">0</div></div>
         <div class="kpi"><div class="lab">Неделя</div><div class="val num" id="kpiWeek">—</div></div>
       </div>
     </div>
 
     <div class="card">
+      <div class="card-h"><span class="t">Прогресс</span></div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="lab">За неделю</div><div class="val num" id="progressWeek">—</div></div>
+        <div class="kpi"><div class="lab">За месяц</div><div class="val num" id="progressMonth">—</div></div>
+        <div class="kpi"><div class="lab">Цель</div><div class="val num accent" id="progressGoalPct">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-h"><span class="t">Динамика веса</span><span class="v" id="weightDelta">—</span></div>
+      <div class="period-tabs" id="weightPeriodTabs">
+        <button class="period-tab active" data-period="7" onclick="setWeightPeriod(7)">7 дн</button>
+        <button class="period-tab" data-period="30" onclick="setWeightPeriod(30)">30 дн</button>
+        <button class="period-tab" data-period="90" onclick="setWeightPeriod(90)">90 дн</button>
+        <button class="period-tab" data-period="all" onclick="setWeightPeriod('all')">Всё</button>
+      </div>
       <canvas id="weightChart" height="120" style="display:block;width:100%;"></canvas>
     </div>
 
@@ -233,7 +409,7 @@ table.simple input{
       <div class="card-h"><span class="t">Быстрая запись</span></div>
       <div class="input-field" style="margin-bottom:8px">
         <label>Вес тела сегодня, кг</label>
-        <input type="number" inputmode="decimal" id="quickWeightInput" placeholder="80.0">
+        <input type="number" inputmode="decimal" id="quickWeightInput" placeholder="Например: 80.5">
       </div>
       <button class="btn-primary" onclick="quickSaveWeight()">Сохранить вес</button>
     </div>
@@ -242,11 +418,22 @@ table.simple input{
       <div class="card-h"><span class="t">План на сегодня</span></div>
       <div id="homePlanToday"></div>
     </div>
+
+    <div class="card">
+      <div class="card-h"><span class="t">Данные и резервная копия</span></div>
+      <button class="btn-secondary" style="margin-bottom:8px" onclick="openExportModal()">📤 Экспорт данных</button>
+      <button class="btn-secondary" style="margin-bottom:8px" onclick="document.getElementById('backupImportInput').click()">📥 Импорт / восстановление</button>
+      <input type="file" id="backupImportInput" accept="application/json" style="display:none" onchange="handleBackupImport(this.files)">
+      <div class="photo-note">Резервная копия сохраняет все данные дневника в один JSON-файл. Используйте её перед удалением приложения или для переноса на другое устройство.</div>
+    </div>
   </section>
 
   <!-- ============ ТРЕНИРОВКИ ============ -->
   <section class="view" id="view-workout">
-    <div class="day-pill-row" id="dayPillRow"></div>
+    <div class="day-pill-wrap" id="dayPillWrap">
+      <div class="day-pill-row" id="dayPillRow" onscroll="updatePillScrollState()"></div>
+    </div>
+    <div class="scroll-dots" id="pillDots"></div>
     <div id="workoutDayContent"></div>
     <button class="btn-ghost" onclick="openAddDayModal()">+ Добавить день сплита</button>
 
@@ -266,7 +453,7 @@ table.simple input{
       <div style="margin-top:8px" class="kpi-grid" >
         <div class="kpi" style="grid-column:span 3"><div class="lab">Углеводы, г</div><div class="val num" id="nutriC">—</div></div>
       </div>
-      <button class="btn-ghost" onclick="openNutritionSettings()">Изменить параметры расчёта</button>
+      <div class="nutri-explain" id="nutriExplain"></div>
     </div>
 
     <div class="card">
@@ -286,15 +473,46 @@ table.simple input{
   <!-- ============ ЗАМЕРЫ ============ -->
   <section class="view" id="view-measure">
     <div class="card">
+      <div class="card-h"><span class="t">Графики замеров</span></div>
+      <div class="period-tabs" id="measurePeriodTabs">
+        <button class="period-tab active" data-period="30" onclick="setMeasurePeriod(30)">30 дн</button>
+        <button class="period-tab" data-period="90" onclick="setMeasurePeriod(90)">90 дн</button>
+        <button class="period-tab" data-period="all" onclick="setMeasurePeriod('all')">Всё</button>
+      </div>
+      <div class="metric-tabs" id="measureMetricTabs">
+        <button class="metric-tab active" data-metric="weight" onclick="setMeasureMetric('weight')">Вес</button>
+        <button class="metric-tab" data-metric="waist" onclick="setMeasureMetric('waist')">Талия</button>
+        <button class="metric-tab" data-metric="chest" onclick="setMeasureMetric('chest')">Грудь</button>
+        <button class="metric-tab" data-metric="bicep" onclick="setMeasureMetric('bicep')">Бицепс</button>
+      </div>
+      <canvas id="measureChart" height="120" style="display:block;width:100%;"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <span class="t">Фото прогресса</span>
+        <span class="v" id="photoCountTag">0 фото</span>
+      </div>
+      <div class="photo-actions">
+        <button class="btn-secondary" onclick="document.getElementById('photoUploadInput').click()">📷 Загрузить фото</button>
+        <button class="btn-ghost" onclick="openPhotoCompare()">Сравнить До/После</button>
+      </div>
+      <input type="file" id="photoUploadInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(this.files)">
+      <div class="photo-grid" id="photoGrid"></div>
+      <div class="photo-note">Фото сжимаются перед сохранением. Хранилище ограничено — рекомендуем не больше 20-25 фото одновременно.</div>
+    </div>
+
+    <div class="card">
       <div class="card-h"><span class="t">Новый замер</span></div>
       <div class="input-field"><label>Дата</label><input type="date" id="measDate"></div>
-      <div class="input-field"><label>Вес, кг</label><input type="number" inputmode="decimal" id="measWeight"></div>
-      <div class="input-field"><label>Бицепс, см</label><input type="number" inputmode="decimal" id="measBicep"></div>
-      <div class="input-field"><label>Грудь, см</label><input type="number" inputmode="decimal" id="measChest"></div>
-      <div class="input-field"><label>Талия, см</label><input type="number" inputmode="decimal" id="measWaist"></div>
-      <div class="input-field"><label>Бедро, см</label><input type="number" inputmode="decimal" id="measThigh"></div>
+      <div class="input-field"><label>Вес, кг</label><input type="number" inputmode="decimal" id="measWeight" oninput="checkMeasureForm()"></div>
+      <div class="input-field"><label>Бицепс, см</label><input type="number" inputmode="decimal" id="measBicep" oninput="checkMeasureForm()"></div>
+      <div class="input-field"><label>Грудь, см</label><input type="number" inputmode="decimal" id="measChest" oninput="checkMeasureForm()"></div>
+      <div class="input-field"><label>Талия, см</label><input type="number" inputmode="decimal" id="measWaist" oninput="checkMeasureForm()"></div>
+      <div class="input-field"><label>Бедро, см</label><input type="number" inputmode="decimal" id="measThigh" oninput="checkMeasureForm()"></div>
       <div class="input-field"><label>Заметка</label><input type="text" id="measNote" placeholder="самочувствие, фото и т.д."></div>
-      <button class="btn-primary" onclick="saveMeasurement()">Сохранить замер</button>
+      <div id="measError" style="display:none;color:var(--accent);font-size:13px;font-weight:600;margin-bottom:10px;">Введите хотя бы одно измерение</div>
+      <button class="btn-primary" id="measSaveBtn" onclick="saveMeasurement()" disabled style="opacity:0.5">Сохранить замер</button>
     </div>
 
     <div class="section-label">История замеров</div>
@@ -321,7 +539,7 @@ table.simple input{
   </button>
   <button class="tab-btn" data-view="workout" onclick="switchView('workout')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="8" x2="3" y2="16"/><line x1="21" y1="8" x2="21" y2="16"/><line x1="7" y1="6" x2="7" y2="18"/><line x1="17" y1="6" x2="17" y2="18"/></svg>
-    Трени
+    Тренировки
   </button>
   <button class="tab-btn" data-view="nutrition" onclick="switchView('nutrition')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -342,6 +560,10 @@ table.simple input{
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="undo-snackbar" id="undoSnackbar">
+  <span id="undoSnackbarText">Упражнение удалено</span>
+  <button onclick="undoLastDelete()">ОТМЕНИТЬ</button>
+</div>
 
 <script>
 // =========================================================
@@ -350,7 +572,7 @@ table.simple input{
 const STORE_KEY = 'gymdiary_v1';
 
 const DEFAULT_DATA = {
-  profile: { heightCm: 183, ageYears: 19, activity: 1.6, surplus: 400, proteinPerKg: 2.0, fatPerKg: 1.0 },
+  profile: { heightCm: 183, ageYears: 19, activity: 1.6, surplus: 400, proteinPerKg: 2.0, fatPerKg: 1.0, targetWeight: null },
   weightLog: [],          // [{date:'YYYY-MM-DD', weight:80.2}]
   measurements: [],       // [{date, weight, bicep, chest, waist, thigh, note}]
   workoutDays: [
@@ -438,7 +660,8 @@ const DEFAULT_DATA = {
     {id:'l22', section:'Доп.', name:'Общий анализ мочи', done:false, date:'', result:''},
     {id:'l23', section:'Доп.', name:'Коагулограмма', done:false, date:'', result:''},
   ],
-  meta: { startDate: todayStr(), currentWeight: 80 }
+  photos: [], // [{id, date, dataUrl, note}]
+  meta: { startDate: todayStr(), currentWeight: 80, dismissedReminders: {} }
 };
 
 function todayStr(){
@@ -447,7 +670,9 @@ function todayStr(){
 }
 
 let DATA = loadData();
+if(storageError){ document.addEventListener('DOMContentLoaded', showStorageErrorBanner); }
 
+let storageError = false;
 function loadData(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
@@ -457,15 +682,32 @@ function loadData(){
     return Object.assign(structuredClone(DEFAULT_DATA), parsed);
   }catch(e){
     console.error('load error', e);
+    storageError = true;
     return structuredClone(DEFAULT_DATA);
   }
 }
 function saveData(){
   try{
     localStorage.setItem(STORE_KEY, JSON.stringify(DATA));
+    if(storageError){ storageError = false; hideStorageErrorBanner(); }
   }catch(e){
-    showToast('Ошибка сохранения данных');
+    storageError = true;
+    showStorageErrorBanner();
   }
+}
+function showStorageErrorBanner(){
+  let banner = document.getElementById('storageErrorBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'storageErrorBanner';
+    banner.className = 'storage-error-banner';
+    banner.innerHTML = '⚠️ Не удаётся сохранить данные на этом устройстве (возможно, режим приватного просмотра). Изменения могут не сохраниться после закрытия.';
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+}
+function hideStorageErrorBanner(){
+  const banner = document.getElementById('storageErrorBanner');
+  if(banner) banner.remove();
 }
 function uid(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
@@ -482,7 +724,7 @@ function fmtDateHuman(dstr){
   if(!dstr) return '—';
   const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const [y,m,d] = dstr.split('-').map(Number);
-  return `${d} ${months[m-1]}`;
+  return `${d} ${months[m-1]} ${y}`;
 }
 function weekdayName(dstr){
   const days = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
@@ -538,8 +780,22 @@ function renderHeader(){
 function renderHome(){
   const today = todayStr();
   document.getElementById('homeToday').textContent = fmtDateHuman(today);
+  renderSmartReminders(today);
   const lastW = DATA.weightLog.length ? DATA.weightLog[DATA.weightLog.length-1].weight : DATA.meta.currentWeight;
   document.getElementById('kpiWeight').textContent = lastW;
+
+  // калории и белки сегодня
+  const n = calcNutrition();
+  const todayMeal = DATA.mealLog.find(m=>m.date===today);
+  const eatenKcal = todayMeal ? todayMeal.items.reduce((a,i)=>a+i.kcal,0) : 0;
+  const eatenProtein = todayMeal ? todayMeal.items.reduce((a,i)=>a+i.p,0) : 0;
+  document.getElementById('kpiKcal').textContent = Math.round(eatenKcal)+'/'+n.target;
+  document.getElementById('kpiProtein').textContent = Math.round(eatenProtein)+'/'+n.protein;
+
+  // тренировка сегодня
+  const todaySession = DATA.workoutHistory.find(h=>h.date===today);
+  document.getElementById('kpiWorkoutToday').textContent = todaySession ? '✓ ' + todaySession.dayName : '—';
+
   const thisWeekWorkouts = DATA.workoutHistory.filter(w=>{
     const d = new Date(w.date+'T00:00:00');
     const now = new Date();
@@ -555,7 +811,7 @@ function renderHome(){
 
   document.getElementById('quickWeightInput').value = '';
 
-  // динамика веса
+  // динамика веса (полная история, не зависит от периода графика)
   if(DATA.weightLog.length>=2){
     const first = DATA.weightLog[0].weight;
     const last = DATA.weightLog[DATA.weightLog.length-1].weight;
@@ -566,10 +822,13 @@ function renderHome(){
   }
   drawWeightChart();
 
+  // блок прогресса
+  renderProgressBlock(lastW);
+
   // план на сегодня — следующий день сплита по порядку, не привязан к датам строго
   const planEl = document.getElementById('homePlanToday');
   if(DATA.workoutDays.length===0){
-    planEl.innerHTML = '<div class="empty-state"><p>Дни тренировок не добавлены</p></div>';
+    planEl.innerHTML = '<div class="empty-state"><p>Дни тренировок пока не добавлены</p></div>';
   } else {
     const lastDone = DATA.workoutHistory[DATA.workoutHistory.length-1];
     let nextIdx = 0;
@@ -590,9 +849,115 @@ function renderHome(){
   }
 }
 
+function daysSince(dateStr, today){
+  if(!dateStr) return Infinity;
+  const d1 = new Date(dateStr+'T00:00:00');
+  const d2 = new Date(today+'T00:00:00');
+  return Math.round((d2-d1)/(24*3600*1000));
+}
+function renderSmartReminders(today){
+  const el = document.getElementById('smartReminders');
+  if(!el) return;
+  const dismissed = DATA.meta.dismissedReminders || {};
+  const reminders = [];
+
+  // взвешивание
+  const lastWeightDate = DATA.weightLog.length ? DATA.weightLog[DATA.weightLog.length-1].date : null;
+  const daysSinceWeight = daysSince(lastWeightDate, today);
+  if(daysSinceWeight >= 3){
+    reminders.push({
+      id:'weight', icon:'⚖️',
+      text:`Вы не взвешивались <b>${daysSinceWeight} ${daysSinceWeight===1?'день':'дня'}</b>. Запишите вес на главной.`
+    });
+  }
+
+  // тренировка
+  const lastWorkoutDate = DATA.workoutHistory.length ? [...DATA.workoutHistory].sort((a,b)=>b.date.localeCompare(a.date))[0].date : null;
+  const daysSinceWorkout = daysSince(lastWorkoutDate, today);
+  if(daysSinceWorkout >= 3 && DATA.workoutDays.length){
+    reminders.push({
+      id:'workout', icon:'🏋️',
+      text:`Последняя тренировка была <b>${daysSinceWorkout} дня назад</b>. Пора вернуться к плану.`
+    });
+  }
+
+  // замеры
+  const lastMeasureDate = DATA.measurements.length ? [...DATA.measurements].sort((a,b)=>b.date.localeCompare(a.date))[0].date : null;
+  const daysSinceMeasure = daysSince(lastMeasureDate, today);
+  if(daysSinceMeasure >= 14){
+    reminders.push({
+      id:'measure', icon:'📏',
+      text:`Замеры тела не обновлялись <b>${daysSinceMeasure} дней</b>. Стоит сделать новый замер.`
+    });
+  }
+
+  // анализы — напоминание раз, если есть невыполненные пункты и дневник используется больше 2 недель
+  const incompleteLabs = DATA.labs.filter(l=>!l.done).length;
+  const daysSinceStart = daysSince(DATA.meta.startDate, today);
+  if(incompleteLabs > 0 && daysSinceStart >= 14){
+    reminders.push({
+      id:'labs', icon:'🧪',
+      text:`Есть <b>${incompleteLabs} невыполненных анализов</b> в чек-листе.`
+    });
+  }
+
+  const visible = reminders.filter(r=>dismissed[r.id]!==today);
+  if(!visible.length){ el.innerHTML=''; return; }
+
+  el.innerHTML = visible.map(r=>`
+    <div class="reminder-card">
+      <span class="ric">${r.icon}</span>
+      <span class="rtext">${r.text}</span>
+      <button onclick="dismissReminder('${r.id}','${today}')">×</button>
+    </div>`).join('');
+}
+function dismissReminder(id, today){
+  if(!DATA.meta.dismissedReminders) DATA.meta.dismissedReminders = {};
+  DATA.meta.dismissedReminders[id] = today;
+  saveData();
+  renderSmartReminders(today);
+}
+function findWeightOnOrBefore(dateStr){
+  const candidates = DATA.weightLog.filter(w=>w.date<=dateStr);
+  if(!candidates.length) return null;
+  return candidates[candidates.length-1].weight;
+}
+function renderProgressBlock(currentWeight){
+  const today = todayStr();
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate()-30);
+  const weekAgoW = findWeightOnOrBefore(todayStrFromDate(weekAgo));
+  const monthAgoW = findWeightOnOrBefore(todayStrFromDate(monthAgo));
+
+  const weekEl = document.getElementById('progressWeek');
+  const monthEl = document.getElementById('progressMonth');
+  if(weekAgoW!=null && currentWeight!=null){
+    const d = (currentWeight-weekAgoW).toFixed(1);
+    weekEl.textContent = (d>0?'+':'')+d+' кг';
+  } else {
+    weekEl.textContent = '—';
+  }
+  if(monthAgoW!=null && currentWeight!=null){
+    const d = (currentWeight-monthAgoW).toFixed(1);
+    monthEl.textContent = (d>0?'+':'')+d+' кг';
+  } else {
+    monthEl.textContent = '—';
+  }
+
+  const goalEl = document.getElementById('progressGoalPct');
+  const target = DATA.profile.targetWeight;
+  const startWeight = DATA.weightLog.length ? DATA.weightLog[0].weight : null;
+  if(target && startWeight!=null && currentWeight!=null && target!==startWeight){
+    const pct = ((currentWeight-startWeight)/(target-startWeight))*100;
+    goalEl.textContent = Math.max(0,Math.min(100,Math.round(pct)))+'%';
+  } else {
+    goalEl.textContent = target ? '0%' : 'не задана';
+  }
+}
+
 function quickSaveWeight(){
   const val = parseFloat(document.getElementById('quickWeightInput').value);
-  if(!val || val<=0){ showToast('Введи корректный вес'); return; }
+  if(!val || val<=0){ showToast('Введите корректный вес'); return; }
   const today = todayStr();
   const existing = DATA.weightLog.find(w=>w.date===today);
   if(existing){ existing.weight = val; } else { DATA.weightLog.push({date:today, weight:val}); }
@@ -603,46 +968,91 @@ function quickSaveWeight(){
   renderAll();
 }
 
+let weightPeriod = 7;
+function setWeightPeriod(p){
+  weightPeriod = p;
+  document.querySelectorAll('#weightPeriodTabs .period-tab').forEach(btn=>{
+    btn.classList.toggle('active', String(btn.dataset.period)===String(p));
+  });
+  drawWeightChart();
+}
+function getWeightLogForPeriod(){
+  if(weightPeriod==='all') return DATA.weightLog;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate()-Number(weightPeriod));
+  const cutoffStr = todayStrFromDate(cutoff);
+  return DATA.weightLog.filter(l=>l.date >= cutoffStr);
+}
+function todayStrFromDate(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function drawWeightChart(){
   const canvas = document.getElementById('weightChart');
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio||1;
-  const w = canvas.clientWidth, h = 120;
+  const w = canvas.clientWidth || canvas.parentElement.clientWidth || 300;
+  const h = 120;
   canvas.width = w*dpr; canvas.height = h*dpr;
+  canvas.style.width = w+'px';
+  canvas.style.height = h+'px';
+  ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(dpr,dpr);
   ctx.clearRect(0,0,w,h);
 
-  const log = DATA.weightLog.slice(-20);
+  const log = getWeightLogForPeriod();
   if(log.length<2){
-    ctx.fillStyle = '#8B92A0';
-    ctx.font = '13px -apple-system';
-    ctx.fillText('Добавь хотя бы 2 замера веса для графика', 4, h/2);
+    ctx.fillStyle = '#7D8590';
+    ctx.textAlign = 'center';
+    const fontSize = w < 280 ? 11 : 12;
+    ctx.font = fontSize+'px -apple-system';
+    const lines = ['Добавьте минимум два замера веса,', 'для построения графика'];
+    lines.forEach((line,i)=>{
+      ctx.fillText(line, w/2, h/2 - 6 + i*(fontSize+4));
+    });
+    ctx.textAlign = 'left';
     return;
   }
   const weights = log.map(l=>l.weight);
   const min = Math.min(...weights)-0.5, max = Math.max(...weights)+0.5;
-  const pad = 10;
-  const stepX = (w-pad*2)/(log.length-1);
+  const padTop = 10, padBottom = 18, padX = 10;
+  const stepX = log.length>1 ? (w-padX*2)/(log.length-1) : 0;
 
   ctx.beginPath();
   log.forEach((pt,i)=>{
-    const x = pad+i*stepX;
-    const y = h-pad - ((pt.weight-min)/(max-min))*(h-pad*2);
+    const x = padX+i*stepX;
+    const y = h-padBottom - ((pt.weight-min)/(max-min))*(h-padTop-padBottom);
     if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
   });
-  ctx.strokeStyle = '#FF4F2B';
+  ctx.strokeStyle = '#FF4D2E';
   ctx.lineWidth = 2.5;
   ctx.lineJoin='round';
   ctx.stroke();
 
+  const showAllDots = log.length <= 31;
   log.forEach((pt,i)=>{
-    const x = pad+i*stepX;
-    const y = h-pad - ((pt.weight-min)/(max-min))*(h-pad*2);
-    ctx.beginPath();
-    ctx.arc(x,y,3,0,Math.PI*2);
-    ctx.fillStyle = '#FF4F2B';
-    ctx.fill();
+    const x = padX+i*stepX;
+    const y = h-padBottom - ((pt.weight-min)/(max-min))*(h-padTop-padBottom);
+    if(showAllDots || i===0 || i===log.length-1){
+      ctx.beginPath();
+      ctx.arc(x,y,3,0,Math.PI*2);
+      ctx.fillStyle = '#FF4D2E';
+      ctx.fill();
+    }
   });
+
+  // подписи первой и последней даты
+  ctx.fillStyle = '#7D8590';
+  ctx.font = '10px -apple-system';
+  ctx.textAlign = 'left';
+  ctx.fillText(fmtDateShort(log[0].date), padX, h-4);
+  ctx.textAlign = 'right';
+  ctx.fillText(fmtDateShort(log[log.length-1].date), w-padX, h-4);
+  ctx.textAlign = 'left';
+}
+function fmtDateShort(dstr){
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const [y,m,d] = dstr.split('-').map(Number);
+  return `${d} ${months[m-1]}`;
 }
 
 // =========================================================
@@ -653,14 +1063,51 @@ let activeDayId = null;
 function renderWorkoutTabs(){
   if(!activeDayId && DATA.workoutDays.length) activeDayId = DATA.workoutDays[0].id;
   const row = document.getElementById('dayPillRow');
-  row.innerHTML = DATA.workoutDays.map(d=>
-    `<div class="day-pill ${d.id===activeDayId?'active':''}" onclick="selectDay('${d.id}')">${escapeHtml(d.name)}</div>`
+  row.innerHTML = DATA.workoutDays.map((d,i)=>
+    `<div class="day-pill ${d.id===activeDayId?'active':''}" data-idx="${i}" onclick="selectDay('${d.id}')">${escapeHtml(d.name)}</div>`
   ).join('');
+  const dotsEl = document.getElementById('pillDots');
+  if(dotsEl){
+    dotsEl.innerHTML = DATA.workoutDays.map((d,i)=>
+      `<div class="dot ${d.id===activeDayId?'active':''}"></div>`
+    ).join('');
+  }
+  setTimeout(()=>{
+    centerActivePill();
+    updatePillScrollState();
+  }, 0);
+}
+function centerActivePill(){
+  const row = document.getElementById('dayPillRow');
+  const active = row.querySelector('.day-pill.active');
+  if(!active) return;
+  const target = active.offsetLeft - (row.clientWidth/2) + (active.clientWidth/2);
+  row.scrollTo({left: Math.max(0,target), behavior:'smooth'});
+}
+function updatePillScrollState(){
+  const row = document.getElementById('dayPillRow');
+  const wrap = document.getElementById('dayPillWrap');
+  if(!row || !wrap) return;
+  const maxScroll = row.scrollWidth - row.clientWidth;
+  wrap.classList.toggle('scroll-left', row.scrollLeft > 8);
+  wrap.classList.toggle('scroll-right', row.scrollLeft < maxScroll - 8);
 }
 function selectDay(id){
   activeDayId = id;
   renderWorkoutTabs();
   renderWorkoutDayContent();
+}
+
+function getLastPerformance(exId, beforeDate){
+  const sessions = DATA.workoutHistory
+    .filter(h=>h.date<beforeDate && h.sets[exId] && h.sets[exId].length)
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sessions.length) return null;
+  const lastSession = sessions[0];
+  const sets = lastSession.sets[exId].filter(s=>s.w && s.r);
+  if(!sets.length) return null;
+  const best = sets.reduce((a,b)=> (parseFloat(b.w)||0) > (parseFloat(a.w)||0) ? b : a);
+  return {date:lastSession.date, w:best.w, r:best.r, allSets:sets};
 }
 
 function renderWorkoutDayContent(){
@@ -679,6 +1126,8 @@ function renderWorkoutDayContent(){
 
   day.exercises.forEach(ex=>{
     const exSets = (session && session.sets[ex.id]) ? session.sets[ex.id] : [];
+    const lastPerf = getLastPerformance(ex.id, today);
+    const exNote = (session && session.notes && session.notes[ex.id]) || '';
     html += `
     <div class="exercise" data-ex="${ex.id}">
       <div class="ex-top">
@@ -686,6 +1135,7 @@ function renderWorkoutDayContent(){
           <div class="ex-name">${escapeHtml(ex.name)}</div>
           <div class="ex-meta">${escapeHtml(ex.sets)} подх. × ${escapeHtml(ex.reps)} · отдых ${escapeHtml(ex.rest)}</div>
           ${ex.comment ? `<div class="ex-comment">${escapeHtml(ex.comment)}</div>` : ''}
+          ${lastPerf ? `<div class="ex-last-perf">Прошлая тренировка: ${escapeHtml(String(lastPerf.w))} кг × ${escapeHtml(String(lastPerf.r))}</div>` : ''}
         </div>
         <div class="ex-actions">
           <button class="icon-btn" onclick="editExercise('${day.id}','${ex.id}')">
@@ -700,11 +1150,19 @@ function renderWorkoutDayContent(){
         ${exSets.map((s,i)=>setRowHtml(ex.id,i,s)).join('')}
       </div>
       <button class="add-set-btn" onclick="addSet('${day.id}','${ex.id}')">+ Подход</button>
+      <textarea class="ex-note-input" placeholder="Заметка к упражнению (самочувствие, техника...)" onblur="updateExerciseNote('${day.id}','${ex.id}',this.value)">${escapeHtml(exNote)}</textarea>
     </div>`;
   });
 
   html += `</div>`;
   cont.innerHTML = html;
+}
+
+function updateExerciseNote(dayId, exId, value){
+  const session = getOrCreateSession(dayId);
+  if(!session.notes) session.notes = {};
+  session.notes[exId] = value;
+  saveData();
 }
 
 function setRowHtml(exId, idx, set){
@@ -713,6 +1171,10 @@ function setRowHtml(exId, idx, set){
     <input type="number" inputmode="decimal" placeholder="кг" value="${set.w??''}" onchange="updateSet('${exId}',${idx},'w',this.value)">
     <span class="x">×</span>
     <input type="number" inputmode="numeric" placeholder="повт" value="${set.r??''}" onchange="updateSet('${exId}',${idx},'r',this.value)">
+    <select class="rpe-select" onchange="updateSet('${exId}',${idx},'rpe',this.value)">
+      <option value="">RPE</option>
+      ${[6,6.5,7,7.5,8,8.5,9,9.5,10].map(v=>`<option value="${v}" ${set.rpe==v?'selected':''}>${v}</option>`).join('')}
+    </select>
     <button class="del" onclick="removeSet('${exId}',${idx})">×</button>
   </div>`;
 }
@@ -722,15 +1184,16 @@ function getOrCreateSession(dayId){
   let session = DATA.workoutHistory.find(h=>h.date===today && h.dayId===dayId);
   if(!session){
     const day = DATA.workoutDays.find(d=>d.id===dayId);
-    session = {id:uid('s'), date:today, dayId:dayId, dayName:day.name, sets:{}};
+    session = {id:uid('s'), date:today, dayId:dayId, dayName:day.name, sets:{}, notes:{}};
     DATA.workoutHistory.push(session);
   }
+  if(!session.notes) session.notes = {};
   return session;
 }
 function addSet(dayId, exId){
   const session = getOrCreateSession(dayId);
   if(!session.sets[exId]) session.sets[exId]=[];
-  session.sets[exId].push({w:'', r:''});
+  session.sets[exId].push({w:'', r:'', rpe:''});
   saveData();
   renderWorkoutDayContent();
 }
@@ -778,15 +1241,62 @@ function saveExerciseEdit(dayId, exId){
   renderWorkoutDayContent();
   showToast('Сохранено');
 }
+let pendingDelete = null;
+let undoTimer = null;
+
 function deleteExercise(dayId, exId){
   const day = DATA.workoutDays.find(d=>d.id===dayId);
-  day.exercises = day.exercises.filter(e=>e.id!==exId);
+  const ex = day.exercises.find(e=>e.id===exId);
+  if(!ex) return;
+  openModal(`
+    <div class="modal-h"><h3>Удалить упражнение?</h3><button onclick="closeModal()">×</button></div>
+    <div class="confirm-text">Вы уверены, что хотите удалить упражнение «${escapeHtml(ex.name)}»?</div>
+    <div class="confirm-actions">
+      <button class="btn-secondary" onclick="closeModal()">Отмена</button>
+      <button class="btn-danger" onclick="confirmDeleteExercise('${dayId}','${exId}')">Удалить</button>
+    </div>
+  `);
+}
+function confirmDeleteExercise(dayId, exId){
+  const day = DATA.workoutDays.find(d=>d.id===dayId);
+  const idx = day.exercises.findIndex(e=>e.id===exId);
+  if(idx===-1) return;
+  const removed = day.exercises[idx];
+  const removedIdx = idx;
+  day.exercises.splice(idx,1);
   saveData();
+  closeModal();
   renderWorkoutDayContent();
-  showToast('Упражнение удалено');
+  pendingDelete = {type:'exercise', dayId, exercise:removed, index:removedIdx};
+  showUndoSnackbar(`Упражнение «${removed.name}» удалено`);
+}
+function showUndoSnackbar(text){
+  clearTimeout(undoTimer);
+  const bar = document.getElementById('undoSnackbar');
+  document.getElementById('undoSnackbarText').textContent = text;
+  bar.classList.add('show');
+  undoTimer = setTimeout(()=>{
+    bar.classList.remove('show');
+    pendingDelete = null;
+  }, 5000);
+}
+function undoLastDelete(){
+  if(!pendingDelete) return;
+  clearTimeout(undoTimer);
+  document.getElementById('undoSnackbar').classList.remove('show');
+  if(pendingDelete.type==='exercise'){
+    const day = DATA.workoutDays.find(d=>d.id===pendingDelete.dayId);
+    if(day){
+      day.exercises.splice(pendingDelete.index, 0, pendingDelete.exercise);
+      saveData();
+      renderWorkoutDayContent();
+      showToast('Упражнение восстановлено');
+    }
+  }
+  pendingDelete = null;
 }
 function openAddExerciseModal(dayId){
-  if(!dayId){ showToast('Сначала выбери день'); return; }
+  if(!dayId){ showToast('Сначала выберите день'); return; }
   openModal(`
     <div class="modal-h"><h3>Новое упражнение</h3><button onclick="closeModal()">×</button></div>
     <div class="input-field"><label>Название</label><input id="nEx_name" placeholder="Например, Жим гантелей"></div>
@@ -799,7 +1309,7 @@ function openAddExerciseModal(dayId){
 }
 function addExercise(dayId){
   const name = document.getElementById('nEx_name').value.trim();
-  if(!name){ showToast('Введи название упражнения'); return; }
+  if(!name){ showToast('Введите название упражнения'); return; }
   const day = DATA.workoutDays.find(d=>d.id===dayId);
   day.exercises.push({
     id: uid('e'),
@@ -850,7 +1360,7 @@ function openAddDayModal(){
 }
 function addDay(){
   const name = document.getElementById('nDay_name').value.trim();
-  if(!name){ showToast('Введи название'); return; }
+  if(!name){ showToast('Введите название'); return; }
   const newDay = {id:uid('d'), name, exercises:[]};
   DATA.workoutDays.push(newDay);
   activeDayId = newDay.id;
@@ -902,7 +1412,12 @@ function calcNutrition(){
   const fatKcal = fat*9;
   const carbKcal = Math.max(0, target - proteinKcal - fatKcal);
   const carb = carbKcal/4;
-  return {target:Math.round(target), protein:Math.round(protein), fat:Math.round(fat), carb:Math.round(carb)};
+  const activityLabel = p.activity>=1.8?'высокая активность':(p.activity>=1.6?'тренировки 4-5 р/нед':'низкая активность');
+  const goalLabel = p.surplus>0?'набор массы':(p.surplus<0?'снижение веса':'поддержание веса');
+  return {
+    target:Math.round(target), protein:Math.round(protein), fat:Math.round(fat), carb:Math.round(carb),
+    weight, heightCm:p.heightCm, activityLabel, goalLabel
+  };
 }
 
 function renderNutrition(){
@@ -911,6 +1426,10 @@ function renderNutrition(){
   document.getElementById('nutriP').textContent = n.protein;
   document.getElementById('nutriF').textContent = n.fat;
   document.getElementById('nutriC').textContent = n.carb;
+  document.getElementById('nutriExplain').innerHTML = `
+    <div class="nx-text">Расчёт основан на:<br>${n.weight} кг • ${n.heightCm} см • ${escapeHtml(n.goalLabel)} • ${escapeHtml(n.activityLabel)}</div>
+    <button onclick="openNutritionSettings()">Изменить</button>
+  `;
 
   const today = todayStr();
   const meals = DATA.mealLog.find(m=>m.date===today);
@@ -921,7 +1440,7 @@ function renderNutrition(){
 
   const listEl = document.getElementById('todayMealsList');
   if(!meals || !meals.items.length){
-    listEl.innerHTML = '<div class="empty-state" style="padding:16px"><p>Сегодня пока ничего не добавлено</p></div>';
+    listEl.innerHTML = '<div class="empty-state" style="padding:16px"><p>Приёмы пищи за сегодня пока не добавлены</p></div>';
   } else {
     listEl.innerHTML = meals.items.map((it,idx)=>`
       <div class="food-item">
@@ -975,6 +1494,7 @@ function openNutritionSettings(){
     <div class="input-field"><label>Профицит калорий, ккал</label><input type="number" id="nsSurplus" value="${p.surplus}"></div>
     <div class="input-field"><label>Белок, г/кг веса</label><input type="number" step="0.1" id="nsProtein" value="${p.proteinPerKg}"></div>
     <div class="input-field"><label>Жиры, г/кг веса</label><input type="number" step="0.1" id="nsFat" value="${p.fatPerKg}"></div>
+    <div class="input-field"><label>Целевой вес, кг (для прогресса на Главной)</label><input type="number" step="0.1" id="nsTargetWeight" value="${p.targetWeight??''}" placeholder="Например: 85"></div>
     <button class="btn-primary" onclick="saveNutritionSettings()">Сохранить</button>
   `);
 }
@@ -985,9 +1505,12 @@ function saveNutritionSettings(){
   DATA.profile.surplus = parseFloat(document.getElementById('nsSurplus').value)||0;
   DATA.profile.proteinPerKg = parseFloat(document.getElementById('nsProtein').value)||2.0;
   DATA.profile.fatPerKg = parseFloat(document.getElementById('nsFat').value)||1.0;
+  const tw = document.getElementById('nsTargetWeight').value;
+  DATA.profile.targetWeight = tw ? parseFloat(tw) : null;
   saveData();
   closeModal();
   renderNutrition();
+  renderHome();
   showToast('Параметры обновлены');
 }
 
@@ -996,14 +1519,30 @@ function openAddMealModal(){
   openModal(`
     <div class="modal-h"><h3>Добавить приём пищи</h3><button onclick="closeModal()">×</button></div>
     <div class="input-field"><label>Продукт</label><select id="mealFoodSelect">${options}</select></div>
-    <div class="input-field"><label>Граммы</label><input type="number" id="mealGrams" placeholder="150" value="150"></div>
+    <div class="input-field">
+      <label>Граммы</label>
+      <input type="number" id="mealGrams" placeholder="150" value="150" min="0" step="1" oninput="if(this.value<0)this.value=0">
+      <div id="mealGramsError" style="display:none;color:var(--accent);font-size:12px;margin-top:5px;font-weight:600;"></div>
+    </div>
     <button class="btn-primary" onclick="addMealItem()">Добавить</button>
   `);
 }
 function addMealItem(){
   const foodId = document.getElementById('mealFoodSelect').value;
-  const grams = parseFloat(document.getElementById('mealGrams').value);
-  if(!grams || grams<=0){ showToast('Введи граммы'); return; }
+  const rawVal = document.getElementById('mealGrams').value;
+  const errEl = document.getElementById('mealGramsError');
+  if(rawVal === '' || rawVal === null){
+    errEl.textContent = 'Введите количество';
+    errEl.style.display = 'block';
+    return;
+  }
+  const grams = parseFloat(rawVal);
+  if(isNaN(grams) || grams <= 0){
+    errEl.textContent = 'Количество должно быть больше 0';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
   const food = DATA.foodDb.find(f=>f.id===foodId);
   const ratio = grams/100;
   const item = {
@@ -1048,7 +1587,7 @@ function openAddFoodModal(){
 }
 function addFoodToDb(){
   const name = document.getElementById('nFood_name').value.trim();
-  if(!name){ showToast('Введи название'); return; }
+  if(!name){ showToast('Введите название'); return; }
   DATA.foodDb.push({
     id: uid('f'), name,
     cat: document.getElementById('nFood_cat').value.trim()||'Другое',
@@ -1073,6 +1612,9 @@ function deleteFoodFromDb(id){
 // =========================================================
 function renderMeasure(){
   document.getElementById('measDate').value = todayStr();
+  checkMeasureForm();
+  drawMeasureChart();
+  renderPhotoGrid();
   const el = document.getElementById('measureHistory');
   const list = [...DATA.measurements].reverse();
   if(!list.length){
@@ -1099,7 +1641,125 @@ function renderMeasure(){
       </div>
     </div>`).join('');
 }
+let measurePeriod = 30;
+let measureMetric = 'weight';
+function setMeasurePeriod(p){
+  measurePeriod = p;
+  document.querySelectorAll('#measurePeriodTabs .period-tab').forEach(btn=>{
+    btn.classList.toggle('active', String(btn.dataset.period)===String(p));
+  });
+  drawMeasureChart();
+}
+function setMeasureMetric(m){
+  measureMetric = m;
+  document.querySelectorAll('#measureMetricTabs .metric-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.metric===m);
+  });
+  drawMeasureChart();
+}
+function drawMeasureChart(){
+  const canvas = document.getElementById('measureChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const w = canvas.clientWidth || canvas.parentElement.clientWidth || 300;
+  const h = 120;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  canvas.style.width = w+'px';
+  canvas.style.height = h+'px';
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+
+  let points;
+  if(measureMetric==='weight'){
+    points = DATA.weightLog.map(w=>({date:w.date, value:w.weight}));
+  } else {
+    points = DATA.measurements
+      .filter(m=>m[measureMetric]!=null && m[measureMetric]!=='')
+      .map(m=>({date:m.date, value:parseFloat(m[measureMetric])}));
+  }
+  points.sort((a,b)=>a.date.localeCompare(b.date));
+
+  if(measurePeriod!=='all'){
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-Number(measurePeriod));
+    const cutoffStr = todayStrFromDate(cutoff);
+    points = points.filter(p=>p.date>=cutoffStr);
+  }
+
+  const metricLabels = {weight:'веса', waist:'талии', chest:'груди', bicep:'бицепса'};
+  if(points.length<2){
+    ctx.fillStyle = '#7D8590';
+    ctx.textAlign = 'center';
+    const fontSize = w < 280 ? 11 : 12;
+    ctx.font = fontSize+'px -apple-system';
+    const lines = [`Недостаточно данных по ${metricLabels[measureMetric]}`, 'для построения графика'];
+    lines.forEach((line,i)=>{
+      ctx.fillText(line, w/2, h/2 - 6 + i*(fontSize+4));
+    });
+    ctx.textAlign = 'left';
+    return;
+  }
+
+  const values = points.map(p=>p.value);
+  const min = Math.min(...values)-0.5, max = Math.max(...values)+0.5;
+  const padTop=10, padBottom=18, padX=10;
+  const stepX = (w-padX*2)/(points.length-1);
+
+  ctx.beginPath();
+  points.forEach((pt,i)=>{
+    const x = padX+i*stepX;
+    const y = h-padBottom - ((pt.value-min)/(max-min))*(h-padTop-padBottom);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#FF4D2E';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin='round';
+  ctx.stroke();
+
+  const showAllDots = points.length <= 31;
+  points.forEach((pt,i)=>{
+    const x = padX+i*stepX;
+    const y = h-padBottom - ((pt.value-min)/(max-min))*(h-padTop-padBottom);
+    if(showAllDots || i===0 || i===points.length-1){
+      ctx.beginPath();
+      ctx.arc(x,y,3,0,Math.PI*2);
+      ctx.fillStyle = '#FF4D2E';
+      ctx.fill();
+    }
+  });
+
+  ctx.fillStyle = '#7D8590';
+  ctx.font = '10px -apple-system';
+  ctx.textAlign = 'left';
+  ctx.fillText(fmtDateShort(points[0].date), padX, h-4);
+  ctx.textAlign = 'right';
+  ctx.fillText(fmtDateShort(points[points.length-1].date), w-padX, h-4);
+  ctx.textAlign = 'left';
+}
+function checkMeasureForm(){
+  const ids = ['measWeight','measBicep','measChest','measWaist','measThigh'];
+  const hasAny = ids.some(id=>{
+    const v = document.getElementById(id).value;
+    return v !== '' && v !== null && !isNaN(parseFloat(v));
+  });
+  const btn = document.getElementById('measSaveBtn');
+  const err = document.getElementById('measError');
+  if(hasAny){
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    err.style.display = 'none';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  }
+  return hasAny;
+}
 function saveMeasurement(){
+  if(!checkMeasureForm()){
+    document.getElementById('measError').style.display = 'block';
+    return;
+  }
   const date = document.getElementById('measDate').value || todayStr();
   const weight = parseFloat(document.getElementById('measWeight').value)||null;
   const m = {
@@ -1122,6 +1782,7 @@ function saveMeasurement(){
   }
   saveData();
   ['measWeight','measBicep','measChest','measWaist','measThigh','measNote'].forEach(id=>document.getElementById(id).value='');
+  checkMeasureForm();
   renderAll();
   showToast('Замер сохранён');
 }
@@ -1129,6 +1790,137 @@ function deleteMeasurement(date){
   DATA.measurements = DATA.measurements.filter(m=>m.date!==date);
   saveData();
   renderMeasure();
+}
+
+// =========================================================
+// ФОТО ПРОГРЕССА
+// =========================================================
+const MAX_PHOTO_DIMENSION = 800;
+const PHOTO_JPEG_QUALITY = 0.7;
+
+function handlePhotoUpload(files){
+  if(!files || !files.length) return;
+  const file = files[0];
+  if(!file.type.startsWith('image/')){ showToast('Выберите изображение'); return; }
+
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if(w > h && w > MAX_PHOTO_DIMENSION){
+        h = Math.round(h * MAX_PHOTO_DIMENSION / w); w = MAX_PHOTO_DIMENSION;
+      } else if(h >= w && h > MAX_PHOTO_DIMENSION){
+        w = Math.round(w * MAX_PHOTO_DIMENSION / h); h = MAX_PHOTO_DIMENSION;
+      }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY);
+
+      DATA.photos.push({id: uid('p'), date: todayStr(), dataUrl, note: ''});
+      DATA.photos.sort((a,b)=>a.date.localeCompare(b.date));
+      saveData();
+      renderPhotoGrid();
+      showToast('Фото сохранено');
+    };
+    img.onerror = ()=>showToast('Не удалось загрузить изображение');
+    img.src = e.target.result;
+  };
+  reader.onerror = ()=>showToast('Ошибка чтения файла');
+  reader.readAsDataURL(file);
+  document.getElementById('photoUploadInput').value = '';
+}
+
+function renderPhotoGrid(){
+  const grid = document.getElementById('photoGrid');
+  const tag = document.getElementById('photoCountTag');
+  if(!grid) return;
+  tag.textContent = DATA.photos.length + ' фото';
+  if(!DATA.photos.length){
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:24px"><p>Фото прогресса пока не загружены</p></div>';
+    return;
+  }
+  const sorted = [...DATA.photos].sort((a,b)=>b.date.localeCompare(a.date));
+  grid.innerHTML = sorted.map(p=>`
+    <div class="photo-thumb">
+      <img src="${p.dataUrl}" alt="Фото ${fmtDateHuman(p.date)}">
+      <div class="pt-date">${fmtDateShort(p.date)}</div>
+      <button class="pt-del" onclick="deletePhoto('${p.id}')">×</button>
+    </div>`).join('');
+}
+function deletePhoto(id){
+  DATA.photos = DATA.photos.filter(p=>p.id!==id);
+  saveData();
+  renderPhotoGrid();
+  showToast('Фото удалено');
+}
+
+function openPhotoCompare(){
+  if(DATA.photos.length < 2){
+    showToast('Нужно минимум 2 фото для сравнения');
+    return;
+  }
+  const sorted = [...DATA.photos].sort((a,b)=>a.date.localeCompare(b.date));
+  const options = sorted.map(p=>`<option value="${p.id}">${fmtDateHuman(p.date)}</option>`).join('');
+  openModal(`
+    <div class="modal-h"><h3>Сравнение До/После</h3><button onclick="closeModal()">×</button></div>
+    <div class="input-field"><label>Фото «До»</label><select id="compareBeforeSelect" onchange="updatePhotoCompare()">${options}</select></div>
+    <div class="input-field"><label>Фото «После»</label><select id="compareAfterSelect" onchange="updatePhotoCompare()">${options}</select></div>
+    <div class="compare-wrap" id="compareWrap" style="margin-top:14px;">
+      <img id="compareImgBefore" src="">
+      <div class="compare-after-clip" id="compareAfterClip">
+        <img id="compareImgAfter" src="">
+      </div>
+      <div class="compare-handle" id="compareHandle" style="left:50%;"></div>
+      <div class="compare-label" style="left:10px;">До</div>
+      <div class="compare-label" style="right:10px;">После</div>
+    </div>
+  `);
+  // выбрать первое и последнее по умолчанию
+  setTimeout(()=>{
+    document.getElementById('compareBeforeSelect').value = sorted[0].id;
+    document.getElementById('compareAfterSelect').value = sorted[sorted.length-1].id;
+    updatePhotoCompare();
+    setupCompareSlider();
+  }, 0);
+}
+function updatePhotoCompare(){
+  const beforeId = document.getElementById('compareBeforeSelect').value;
+  const afterId = document.getElementById('compareAfterSelect').value;
+  const before = DATA.photos.find(p=>p.id===beforeId);
+  const after = DATA.photos.find(p=>p.id===afterId);
+  if(before) document.getElementById('compareImgBefore').src = before.dataUrl;
+  if(after) document.getElementById('compareImgAfter').src = after.dataUrl;
+}
+function setupCompareSlider(){
+  const wrap = document.getElementById('compareWrap');
+  const handle = document.getElementById('compareHandle');
+  const clip = document.getElementById('compareAfterClip');
+  if(!wrap) return;
+
+  function setPosition(clientX){
+    const rect = wrap.getBoundingClientRect();
+    let pct = ((clientX - rect.left) / rect.width) * 100;
+    pct = Math.max(0, Math.min(100, pct));
+    handle.style.left = pct + '%';
+    clip.style.width = pct + '%';
+  }
+  // инициализация: после-картинка обрезана справа на 50%
+  clip.style.width = '50%';
+
+  function onMove(e){
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    setPosition(x);
+  }
+  handle.addEventListener('mousedown', ()=>{
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', ()=>document.removeEventListener('mousemove', onMove), {once:true});
+  });
+  handle.addEventListener('touchstart', (e)=>{ e.preventDefault(); }, {passive:false});
+  wrap.addEventListener('touchmove', (e)=>{ e.preventDefault(); onMove(e); }, {passive:false});
+  wrap.addEventListener('mousedown', onMove);
 }
 
 // =========================================================
@@ -1143,14 +1935,19 @@ function renderLabs(){
   el.innerHTML = Object.entries(sections).map(([sec,items])=>`
     <div class="cat-title">${escapeHtml(sec)}</div>
     ${items.map(l=>`
-      <div class="food-item">
+      <div class="food-item lab-item ${l.done?'lab-item-done':''}" id="labRow-${l.id}">
         <div style="display:flex;align-items:center;gap:10px;flex:1">
           <input type="checkbox" ${l.done?'checked':''} onchange="toggleLab('${l.id}',this.checked)" style="width:20px;height:20px;accent-color:var(--accent)">
           <div style="flex:1">
             <div class="fname" style="${l.done?'color:var(--sub);text-decoration:line-through':''}">${escapeHtml(l.name)}</div>
-            <input type="text" placeholder="результат / дата" value="${escapeAttr(l.result||'')}"
-              onchange="updateLabResult('${l.id}',this.value)"
-              style="background:none;border:none;color:var(--sub);font-size:12px;padding:2px 0;width:100%">
+            ${l.resultOpen || l.result ? `
+              <input type="text" id="labInput-${l.id}" placeholder="результат / дата" value="${escapeAttr(l.result||'')}"
+                onblur="updateLabResult('${l.id}',this.value)"
+                autofocus
+                style="background:var(--bg);border:1px solid var(--accent);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;width:100%;margin-top:4px;">
+            ` : `
+              <button class="lab-add-result-btn" onclick="openLabResult('${l.id}')">➕ Указать результат</button>
+            `}
           </div>
         </div>
         <button class="icon-btn" onclick="deleteLab('${l.id}')">
@@ -1163,12 +1960,31 @@ function toggleLab(id, val){
   const lab = DATA.labs.find(l=>l.id===id);
   lab.done = val;
   if(val && !lab.date) lab.date = todayStr();
+  if(val) lab.resultOpen = true;
   saveData();
   renderLabs();
+  if(val){
+    setTimeout(()=>{
+      const inp = document.getElementById('labInput-'+id);
+      if(inp) inp.focus();
+      const row = document.getElementById('labRow-'+id);
+      if(row){ row.classList.add('lab-flash'); setTimeout(()=>row.classList.remove('lab-flash'), 900); }
+    }, 50);
+  }
+}
+function openLabResult(id){
+  const lab = DATA.labs.find(l=>l.id===id);
+  lab.resultOpen = true;
+  renderLabs();
+  setTimeout(()=>{
+    const inp = document.getElementById('labInput-'+id);
+    if(inp) inp.focus();
+  }, 50);
 }
 function updateLabResult(id, val){
   const lab = DATA.labs.find(l=>l.id===id);
   lab.result = val;
+  if(!val) lab.resultOpen = false;
   saveData();
 }
 function deleteLab(id){
@@ -1186,7 +2002,7 @@ function openAddLabModal(){
 }
 function addLab(){
   const name = document.getElementById('nLab_name').value.trim();
-  if(!name){ showToast('Введи название'); return; }
+  if(!name){ showToast('Введите название'); return; }
   DATA.labs.push({
     id: uid('l'), section: document.getElementById('nLab_section').value.trim()||'Другое',
     name, done:false, date:'', result:''
@@ -1199,10 +2015,282 @@ function addLab(){
 // =========================================================
 // ОБЩИЙ РЕНДЕР
 // =========================================================
+// =========================================================
+// ГЛОБАЛЬНЫЙ ПОИСК
+// =========================================================
+function openGlobalSearch(){
+  openModal(`
+    <div class="modal-h"><h3>Поиск</h3><button onclick="closeModal()">×</button></div>
+    <div class="search-input-wrap">
+      <input type="text" id="globalSearchInput" placeholder="Упражнения, анализы, продукты, замеры..." oninput="runGlobalSearch(this.value)" autofocus>
+    </div>
+    <div class="search-results" id="globalSearchResults"></div>
+  `);
+  setTimeout(()=>{
+    const inp = document.getElementById('globalSearchInput');
+    if(inp) inp.focus();
+  }, 100);
+}
+function runGlobalSearch(query){
+  const resEl = document.getElementById('globalSearchResults');
+  const q = query.trim().toLowerCase();
+  if(q.length < 1){ resEl.innerHTML = ''; return; }
+
+  const exerciseMatches = [];
+  DATA.workoutDays.forEach(day=>{
+    day.exercises.forEach(ex=>{
+      if(ex.name.toLowerCase().includes(q)){
+        exerciseMatches.push({day, ex});
+      }
+    });
+  });
+
+  const labMatches = DATA.labs.filter(l=>l.name.toLowerCase().includes(q) || l.section.toLowerCase().includes(q));
+  const foodMatches = DATA.foodDb.filter(f=>f.name.toLowerCase().includes(q));
+  const measureMatches = DATA.measurements.filter(m=>(m.note||'').toLowerCase().includes(q) || fmtDateHuman(m.date).toLowerCase().includes(q));
+
+  const totalMatches = exerciseMatches.length + labMatches.length + foodMatches.length + measureMatches.length;
+  if(totalMatches===0){
+    resEl.innerHTML = `<div class="empty-state"><p>Ничего не найдено по запросу «${escapeHtml(query)}»</p></div>`;
+    return;
+  }
+
+  let html = '';
+  if(exerciseMatches.length){
+    html += `<div class="search-result-group"><div class="srg-title">Упражнения</div>`;
+    html += exerciseMatches.map(({day,ex})=>`
+      <div class="search-result-item" onclick="closeModal();switchView('workout');selectDay('${day.id}')">
+        <span class="sri-icon">🏋️</span>
+        <div><div class="sri-name">${escapeHtml(ex.name)}</div><div class="sri-meta">${escapeHtml(day.name)}</div></div>
+      </div>`).join('');
+    html += `</div>`;
+  }
+  if(labMatches.length){
+    html += `<div class="search-result-group"><div class="srg-title">Анализы</div>`;
+    html += labMatches.map(l=>`
+      <div class="search-result-item" onclick="closeModal();switchView('labs')">
+        <span class="sri-icon">🧪</span>
+        <div><div class="sri-name">${escapeHtml(l.name)}</div><div class="sri-meta">${escapeHtml(l.section)} · ${l.done?'выполнено':'не выполнено'}</div></div>
+      </div>`).join('');
+    html += `</div>`;
+  }
+  if(foodMatches.length){
+    html += `<div class="search-result-group"><div class="srg-title">Продукты</div>`;
+    html += foodMatches.map(f=>`
+      <div class="search-result-item" onclick="closeModal();switchView('nutrition')">
+        <span class="sri-icon">🍽️</span>
+        <div><div class="sri-name">${escapeHtml(f.name)}</div><div class="sri-meta">Б${f.p} Ж${f.f} У${f.c} · ${f.kcal} ккал/100г</div></div>
+      </div>`).join('');
+    html += `</div>`;
+  }
+  if(measureMatches.length){
+    html += `<div class="search-result-group"><div class="srg-title">Замеры</div>`;
+    html += measureMatches.map(m=>`
+      <div class="search-result-item" onclick="closeModal();switchView('measure')">
+        <span class="sri-icon">📏</span>
+        <div><div class="sri-name">${fmtDateHuman(m.date)}</div><div class="sri-meta">${escapeHtml(m.note||'без заметки')}</div></div>
+      </div>`).join('');
+    html += `</div>`;
+  }
+  resEl.innerHTML = html;
+}
+
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 function escapeAttr(str){ return escapeHtml(str); }
+
+// =========================================================
+// ЭКСПОРТ И РЕЗЕРВНОЕ КОПИРОВАНИЕ
+// =========================================================
+function openExportModal(){
+  openModal(`
+    <div class="modal-h"><h3>Экспорт данных</h3><button onclick="closeModal()">×</button></div>
+    <button class="btn-secondary" style="margin-bottom:10px" onclick="exportJSON()">💾 Полный бэкап (JSON)</button>
+    <button class="btn-secondary" style="margin-bottom:10px" onclick="exportCSV()">📊 Таблицы для Excel (CSV)</button>
+    <button class="btn-secondary" style="margin-bottom:10px" onclick="exportPDF()">📄 Отчёт для печати (PDF)</button>
+    <div class="photo-note">JSON подходит для полного переноса данных. CSV открывается в Excel/Google Таблицах. PDF создаётся через диалог печати — на iPhone выберите «Сохранить в Файлы» или «Markup → Сохранить как PDF».</div>
+  `);
+}
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function exportJSON(){
+  const exportData = structuredClone(DATA);
+  const json = JSON.stringify(exportData, null, 2);
+  downloadFile(`дневник-бэкап-${todayStr()}.json`, json, 'application/json');
+  closeModal();
+  showToast('Бэкап сохранён');
+}
+function csvEscape(val){
+  const s = String(val??'');
+  if(s.includes(',') || s.includes('"') || s.includes('\n')){
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+function exportCSV(){
+  let csv = '\uFEFF'; // BOM для корректного открытия кириллицы в Excel
+
+  csv += 'ВЕС ТЕЛА\n';
+  csv += 'Дата,Вес (кг)\n';
+  DATA.weightLog.forEach(w=>{ csv += `${csvEscape(w.date)},${csvEscape(w.weight)}\n`; });
+  csv += '\n';
+
+  csv += 'ЗАМЕРЫ\n';
+  csv += 'Дата,Вес,Бицепс,Грудь,Талия,Бедро,Заметка\n';
+  DATA.measurements.forEach(m=>{
+    csv += [m.date,m.weight,m.bicep,m.chest,m.waist,m.thigh,m.note].map(csvEscape).join(',') + '\n';
+  });
+  csv += '\n';
+
+  csv += 'ТРЕНИРОВКИ\n';
+  csv += 'Дата,День,Упражнение,Вес,Повторы,RPE\n';
+  DATA.workoutHistory.forEach(h=>{
+    Object.entries(h.sets).forEach(([exId, sets])=>{
+      let exName = exId;
+      for(const day of DATA.workoutDays){
+        const ex = day.exercises.find(e=>e.id===exId);
+        if(ex){ exName = ex.name; break; }
+      }
+      sets.forEach(s=>{
+        csv += [h.date, h.dayName, exName, s.w, s.r, s.rpe].map(csvEscape).join(',') + '\n';
+      });
+    });
+  });
+  csv += '\n';
+
+  csv += 'ПИТАНИЕ\n';
+  csv += 'Дата,Продукт,Граммы,Белки,Жиры,Углеводы,Калории\n';
+  DATA.mealLog.forEach(m=>{
+    m.items.forEach(it=>{
+      csv += [m.date, it.name, it.grams, it.p, it.f, it.c, Math.round(it.kcal)].map(csvEscape).join(',') + '\n';
+    });
+  });
+  csv += '\n';
+
+  csv += 'АНАЛИЗЫ\n';
+  csv += 'Раздел,Показатель,Выполнено,Дата,Результат\n';
+  DATA.labs.forEach(l=>{
+    csv += [l.section, l.name, l.done?'да':'нет', l.date, l.result].map(csvEscape).join(',') + '\n';
+  });
+
+  downloadFile(`дневник-таблицы-${todayStr()}.csv`, csv, 'text/csv;charset=utf-8');
+  closeModal();
+  showToast('Таблица сохранена');
+}
+function exportPDF(){
+  const n = calcNutrition();
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Разрешите всплывающие окна для печати'); return; }
+  const lastW = DATA.weightLog.length ? DATA.weightLog[DATA.weightLog.length-1].weight : DATA.meta.currentWeight;
+
+  let workoutRows = '';
+  DATA.workoutHistory.slice(-20).forEach(h=>{
+    const setsText = Object.entries(h.sets).map(([exId, sets])=>{
+      let exName = exId;
+      for(const day of DATA.workoutDays){
+        const ex = day.exercises.find(e=>e.id===exId);
+        if(ex){ exName = ex.name; break; }
+      }
+      const setsStr = sets.filter(s=>s.w||s.r).map(s=>`${s.w||'-'}×${s.r||'-'}`).join(', ');
+      return setsStr ? `${exName}: ${setsStr}` : '';
+    }).filter(Boolean).join('; ');
+    workoutRows += `<tr><td>${fmtDateHuman(h.date)}</td><td>${escapeHtml(h.dayName)}</td><td>${escapeHtml(setsText)}</td></tr>`;
+  });
+
+  let measureRows = '';
+  DATA.measurements.slice(-20).forEach(m=>{
+    measureRows += `<tr><td>${fmtDateHuman(m.date)}</td><td>${m.weight||'—'}</td><td>${m.bicep||'—'}</td><td>${m.chest||'—'}</td><td>${m.waist||'—'}</td></tr>`;
+  });
+
+  let labRows = '';
+  DATA.labs.forEach(l=>{
+    labRows += `<tr><td>${escapeHtml(l.section)}</td><td>${escapeHtml(l.name)}</td><td>${l.done?'✓':'—'}</td><td>${escapeHtml(l.result||'')}</td></tr>`;
+  });
+
+  w.document.write(`
+    <html><head><meta charset="UTF-8"><title>Отчёт дневника</title>
+    <style>
+      body{font-family:-apple-system,sans-serif;color:#222;padding:24px;}
+      h1{font-size:20px;margin-bottom:4px;}
+      h2{font-size:15px;margin-top:24px;border-bottom:2px solid #FF4D2E;padding-bottom:4px;}
+      table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+      th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;}
+      th{background:#f0f0f0;}
+      .summary{display:flex;gap:24px;margin:12px 0;}
+      .summary div{font-size:13px;}
+      .summary b{font-size:18px;display:block;}
+    </style></head><body>
+    <h1>Отчёт спортивного дневника</h1>
+    <div>Дата формирования: ${fmtDateHuman(todayStr())}</div>
+    <div class="summary">
+      <div><b>${lastW} кг</b>Текущий вес</div>
+      <div><b>${n.target} ккал</b>Целевая калорийность</div>
+      <div><b>${DATA.workoutHistory.length}</b>Тренировок всего</div>
+    </div>
+    <h2>История тренировок</h2>
+    <table><tr><th>Дата</th><th>День</th><th>Подходы</th></tr>${workoutRows||'<tr><td colspan=3>Нет данных</td></tr>'}</table>
+    <h2>Замеры тела</h2>
+    <table><tr><th>Дата</th><th>Вес</th><th>Бицепс</th><th>Грудь</th><th>Талия</th></tr>${measureRows||'<tr><td colspan=5>Нет данных</td></tr>'}</table>
+    <h2>Анализы</h2>
+    <table><tr><th>Раздел</th><th>Показатель</th><th>Выполнено</th><th>Результат</th></tr>${labRows||'<tr><td colspan=4>Нет данных</td></tr>'}</table>
+    <script>window.onload=()=>window.print();</script>
+    </body></html>
+  `);
+  w.document.close();
+  closeModal();
+}
+let pendingRestoreData = null;
+function handleBackupImport(files){
+  if(!files || !files.length) return;
+  const file = files[0];
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!imported || typeof imported !== 'object'){
+        showToast('Файл повреждён или имеет неверный формат');
+        return;
+      }
+      pendingRestoreData = imported;
+      openModal(`
+        <div class="modal-h"><h3>Восстановить данные?</h3><button onclick="closeModal()">×</button></div>
+        <div class="confirm-text">Это заменит все текущие данные дневника данными из файла. Текущие данные будут потеряны, если вы не сделали резервную копию.</div>
+        <div class="confirm-actions">
+          <button class="btn-secondary" onclick="closeModal()">Отмена</button>
+          <button class="btn-danger" onclick="confirmRestoreBackup()">Восстановить</button>
+        </div>
+      `);
+    }catch(err){
+      showToast('Не удалось прочитать файл — проверьте формат JSON');
+    }
+  };
+  reader.onerror = ()=>showToast('Ошибка чтения файла');
+  reader.readAsText(file);
+  document.getElementById('backupImportInput').value = '';
+}
+function confirmRestoreBackup(){
+  if(!pendingRestoreData){ showToast('Нет данных для восстановления'); return; }
+  try{
+    DATA = Object.assign(structuredClone(DEFAULT_DATA), pendingRestoreData);
+    saveData();
+    pendingRestoreData = null;
+    closeModal();
+    renderAll();
+    showToast('Данные восстановлены');
+  }catch(err){
+    showToast('Ошибка восстановления данных');
+  }
+}
 
 function renderAll(){
   renderHeader();
@@ -1214,6 +2302,14 @@ function renderAll(){
 }
 
 renderAll();
+window.addEventListener('resize', ()=>{
+  if(currentView==='home') drawWeightChart();
+  if(currentView==='measure') drawMeasureChart();
+});
+window.addEventListener('load', ()=>{
+  if(currentView==='home') drawWeightChart();
+  if(currentView==='measure') drawMeasureChart();
+});
 
 </script>
 </body>
