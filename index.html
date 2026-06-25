@@ -1673,9 +1673,11 @@ table.simple input {
     <div class="card">
       <div class="card-header">
         <span class="card-label">Записать вес</span>
+        <button class="btn-ghost" style="padding:0;font-size:12px" onclick="openWeightHistory()">История</button>
       </div>
       <div class="input-group" style="margin-bottom:10px">
-        <input class="input-field mono" type="number" inputmode="decimal" id="quickWeightInput" placeholder="80.5">
+        <input class="input-field mono" type="number" inputmode="decimal" id="quickWeightInput" placeholder="80.5"
+          oninput="autosaveWeightDraft(this.value)">
       </div>
       <button class="btn-primary" onclick="quickSaveWeight()">Сохранить вес</button>
     </div>
@@ -1693,10 +1695,14 @@ table.simple input {
       <div class="card-header">
         <span class="card-label">Данные</span>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
         <button class="btn-secondary" style="flex:1" onclick="openExportModal()">📤 Экспорт</button>
         <button class="btn-secondary" style="flex:1" onclick="document.getElementById('backupImportInput').click()">📥 Импорт</button>
         <input type="file" id="backupImportInput" accept="application/json" style="display:none" onchange="handleBackupImport(this.files)">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn-secondary" style="flex:1" onclick="openActivityLog()">📋 Журнал действий</button>
+        <button class="btn-secondary" style="flex:1" onclick="openTrash()">🗑️ Корзина</button>
       </div>
       <p class="helper-text">JSON-бэкап сохраняет все данные. Используйте перед удалением приложения или для переноса на другое устройство.</p>
     </div>
@@ -2024,6 +2030,8 @@ const DEFAULT_DATA = {
     {id:'l23', section:'Доп.',        name:'Коагулограмма',     done:false, date:'', result:''},
   ],
   photos: [],
+  activityLog: [],   // [{id, ts, type, desc, payload}]
+  trash: [],         // [{id, type, label, payload, deletedAt, expiresAt}]
   meta: {
     startDate: todayStr(),
     currentWeight: 80,
@@ -2091,7 +2099,88 @@ function h(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function round1(n) { return Math.round(n * 10) / 10; }
+// ═══════════════════════════════════════════════════════════
+// FMT — единый форматтер чисел для UI
+// Никаких сырых toFixed / Math.round в шаблонах.
+// ═══════════════════════════════════════════════════════════
+const Fmt = {
+  // Внутренний: округляет до decimals знаков, убирает float-артефакты
+  _r(n, decimals) {
+    const v = parseFloat(n);
+    if (!isFinite(v)) return 0;
+    // Используем Number.EPSILON-трюк против 80.00000001
+    const factor = Math.pow(10, decimals);
+    return Math.round((v + Number.EPSILON) * factor) / factor;
+  },
+
+  /** Вес тела и снаряды: 1 знак после запятой, убирает .0 если целое
+   *  fmt.weight(80.0)   → "80"
+   *  fmt.weight(80.25)  → "80.3"
+   */
+  weight(n) {
+    const v = this._r(n, 1);
+    return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(1);
+  },
+
+  /** Калории: целое число, без дробной части
+   *  fmt.kcal(3366.666) → "3367"
+   */
+  kcal(n) {
+    return String(Math.round(this._r(n, 0)));
+  },
+
+  /** Граммы макронутриентов: 1 знак, убирает .0
+   *  fmt.macro(180.4999) → "180.5"
+   *  fmt.macro(24.0)     → "24"
+   */
+  macro(n) {
+    const v = this._r(n, 1);
+    return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(1);
+  },
+
+  /** Замеры тела (см): 1 знак */
+  cm(n) {
+    const v = this._r(n, 1);
+    return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(1);
+  },
+
+  /** Процент: 1 знак, зажат в [0, 100]
+   *  fmt.pct(15.666) → "15.7%"
+   */
+  pct(n) {
+    const v = Math.max(0, Math.min(100, this._r(n, 1)));
+    return (v % 1 === 0 ? String(Math.round(v)) : v.toFixed(1)) + '%';
+  },
+
+  /** Дельта веса со знаком: +0.5 кг / -1.2 кг
+   *  fmt.delta(0.5)  → "+0.5 кг"
+   *  fmt.delta(-1.2) → "−1.2 кг"
+   */
+  delta(n) {
+    const v = this._r(n, 1);
+    const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+    const abs  = Math.abs(v);
+    const str  = abs % 1 === 0 ? String(Math.round(abs)) : abs.toFixed(1);
+    return sign + str + ' кг';
+  },
+
+  /** Граммы для записи порций (целое) */
+  grams(n) {
+    return String(Math.round(this._r(n, 0)));
+  },
+
+  /** Безопасный parseFloat с fallback */
+  parse(val, fallback = 0) {
+    const v = parseFloat(val);
+    return isFinite(v) ? v : fallback;
+  },
+
+  /** round1 — для внутренних вычислений, не для UI */
+  r1(n) { return this._r(n, 1); },
+};
+
+// Оставляем round1 как алиас для совместимости с внутренними расчётами
+function round1(n) { return Fmt.r1(n); }
 
 // ═══════════════════════════════════════════════════════════
 // UI UTILITIES
@@ -2180,7 +2269,7 @@ function renderHeader() {
   const lastW = DATA.weightLog.length
     ? DATA.weightLog[DATA.weightLog.length - 1].weight
     : DATA.meta.currentWeight;
-  document.getElementById('headerWeight').textContent = lastW + ' кг';
+  document.getElementById('headerWeight').textContent = Fmt.weight(lastW) + ' кг';
 
   const start = new Date(DATA.meta.startDate + 'T00:00:00');
   const now   = new Date(today + 'T00:00:00');
@@ -2200,15 +2289,15 @@ function renderHome() {
   const lastW = DATA.weightLog.length
     ? DATA.weightLog[DATA.weightLog.length - 1].weight
     : DATA.meta.currentWeight;
-  document.getElementById('kpiWeight').textContent = lastW;
+  document.getElementById('kpiWeight').textContent = Fmt.weight(lastW);
 
   const n = calcNutrition();
   const todayMeal = DATA.mealLog.find(m => m.date === today);
   const eatenKcal    = todayMeal ? todayMeal.items.reduce((a, i) => a + i.kcal, 0) : 0;
   const eatenProtein = todayMeal ? todayMeal.items.reduce((a, i) => a + i.p, 0) : 0;
-  document.getElementById('kpiKcal').textContent        = Math.round(eatenKcal);
-  document.getElementById('kpiKcalTarget').textContent  = n.target;
-  document.getElementById('kpiProtein').textContent     = Math.round(eatenProtein) + 'г';
+  document.getElementById('kpiKcal').textContent        = Fmt.kcal(eatenKcal);
+  document.getElementById('kpiKcalTarget').textContent  = Fmt.kcal(n.target);
+  document.getElementById('kpiProtein').textContent     = Fmt.macro(eatenProtein) + 'г';
 
   const todaySession = DATA.workoutHistory.find(h => h.date === today);
   const kpiWT = document.getElementById('kpiWorkoutToday');
@@ -2335,8 +2424,7 @@ function renderProgressBlock(currentWeight) {
 
   function fmtDelta(val, ref) {
     if (val == null || ref == null) return '—';
-    const d = (val - ref).toFixed(1);
-    return (d > 0 ? '+' : '') + d + ' кг';
+    return Fmt.delta(val - ref);
   }
 
   document.getElementById('progressWeek').textContent  = fmtDelta(currentWeight, weekAgoW);
@@ -2347,7 +2435,7 @@ function renderProgressBlock(currentWeight) {
   const goalEl = document.getElementById('progressGoal');
   if (target && startWeight != null && currentWeight != null && target !== startWeight) {
     const pct = ((currentWeight - startWeight) / (target - startWeight)) * 100;
-    goalEl.textContent = Math.max(0, Math.min(100, Math.round(pct))) + '%';
+    goalEl.textContent = Fmt.pct(pct);
   } else {
     goalEl.textContent = target ? '0%' : '—';
   }
@@ -2357,29 +2445,29 @@ function renderProgressBlock(currentWeight) {
   if (DATA.weightLog.length >= 2) {
     const first = DATA.weightLog[0].weight;
     const last  = DATA.weightLog[DATA.weightLog.length - 1].weight;
-    const delta = (last - first).toFixed(1);
-    const sign  = delta > 0 ? '+' : '';
-    const cls   = delta > 0 ? 'positive' : delta < 0 ? 'negative' : 'neutral';
-    badgeEl.innerHTML = `<span class="delta-badge ${cls}">${sign}${delta} кг</span>`;
+    const diff  = last - first;
+    const cls   = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
+    badgeEl.innerHTML = `<span class="delta-badge ${cls}">${Fmt.delta(diff)}</span>`;
   } else {
     badgeEl.innerHTML = '';
   }
 }
 
 function quickSaveWeight() {
-  const val = parseFloat(document.getElementById('quickWeightInput').value);
+  const val = Fmt.parse(document.getElementById('quickWeightInput').value);
   if (!val || val <= 0) { showToast('Введите корректный вес'); return; }
+  const rounded = Fmt.r1(val);          // хранить с 1 знаком — чисто
   const today = todayStr();
   const existing = DATA.weightLog.find(w => w.date === today);
   if (existing) {
-    existing.weight = val;
+    existing.weight = rounded;
   } else {
-    DATA.weightLog.push({ date: today, weight: val });
+    DATA.weightLog.push({ date: today, weight: rounded });
     DATA.weightLog.sort((a, b) => a.date.localeCompare(b.date));
   }
-  DATA.meta.currentWeight = val;
+  DATA.meta.currentWeight = rounded;
   saveData();
-  showToast('Вес сохранён: ' + val + ' кг');
+  showToast('Вес сохранён: ' + Fmt.weight(rounded) + ' кг');
   renderAll();
 }
 
@@ -2408,14 +2496,18 @@ function drawWeightChart() {
   drawLineChart('weightChart', getWeightLogForPeriod(weightPeriod), w => w.weight);
 }
 
-function drawLineChart(canvasId, data, valueGetter) {
+// ─── Chart state (tooltip) ───
+const _chartState = {};
+
+function drawLineChart(canvasId, data, valueGetter, opts) {
+  opts = opts || {};
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.parentElement.getBoundingClientRect();
   const W = rect.width || 300;
-  const H = 140;
+  const H = 160;
 
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
@@ -2423,17 +2515,57 @@ function drawLineChart(canvasId, data, valueGetter) {
   canvas.style.height = H + 'px';
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
 
   const points = data.map(d => ({ date: d.date, value: valueGetter(d) }))
     .filter(p => p.value != null);
+
+  // Store for tooltip
+  _chartState[canvasId] = { points, W, H, opts };
+
+  // Setup touch/mouse tooltip (once)
+  if (!canvas._tooltipBound) {
+    canvas._tooltipBound = true;
+    const onMove = (e) => {
+      e.preventDefault();
+      const touch = e.touches ? e.touches[0] : e;
+      const r = canvas.getBoundingClientRect();
+      const mx = touch.clientX - r.left;
+      _chartState[canvasId].hoverX = mx;
+      _redrawChart(canvasId);
+    };
+    const onEnd = () => {
+      if (_chartState[canvasId]) delete _chartState[canvasId].hoverX;
+      _redrawChart(canvasId);
+    };
+    canvas.addEventListener('mousemove',  onMove, { passive: false });
+    canvas.addEventListener('touchmove',  onMove, { passive: false });
+    canvas.addEventListener('mouseleave', onEnd);
+    canvas.addEventListener('touchend',   onEnd);
+  }
+
+  _redrawChart(canvasId);
+}
+
+function _redrawChart(canvasId) {
+  const state = _chartState[canvasId];
+  if (!state) return;
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const { points, W, H, opts } = state;
+  const hoverX = state.hoverX;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
 
   if (points.length < 2) {
     ctx.fillStyle = '#55555F';
     ctx.textAlign = 'center';
     ctx.font = '12px -apple-system';
     ctx.fillText('Добавьте минимум 2 замера', W / 2, H / 2 - 8);
-    ctx.fillText('для отображения графика', W / 2, H / 2 + 8);
+    ctx.fillText('для отображения графика',   W / 2, H / 2 + 8);
     ctx.textAlign = 'left';
     return;
   }
@@ -2442,77 +2574,150 @@ function drawLineChart(canvasId, data, valueGetter) {
   const minV = Math.min(...values);
   const maxV = Math.max(...values);
   const range = maxV - minV || 1;
-  const padTop = 16, padBottom = 24, padX = 12;
+  const padTop = 20, padBottom = 26, padX = 14;
   const plotW = W - padX * 2;
   const plotH = H - padTop - padBottom;
 
-  function px(i) { return padX + (i / (points.length - 1)) * plotW; }
-  function py(v) { return padTop + (1 - (v - minV) / range) * plotH; }
+  const px = i => padX + (i / (points.length - 1)) * plotW;
+  const py = v => padTop + (1 - (v - minV) / range) * plotH;
 
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  // ── Grid lines with Y labels ──
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 1;
-  for (let i = 0; i <= 3; i++) {
-    const y = padTop + (i / 3) * plotH;
-    ctx.beginPath();
-    ctx.moveTo(padX, y);
-    ctx.lineTo(W - padX, y);
-    ctx.stroke();
+  const steps = 3;
+  for (let i = 0; i <= steps; i++) {
+    const y = padTop + (i / steps) * plotH;
+    const val = maxV - (i / steps) * range;
+    ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(W - padX, y); ctx.stroke();
+    if (i > 0 && i < steps) {
+      ctx.font = '9px -apple-system';
+      ctx.fillStyle = '#3A3A45';
+      ctx.textAlign = 'left';
+      ctx.fillText(Fmt.weight(val), padX + 2, y - 3);
+    }
   }
 
-  // Gradient fill
-  const grad = ctx.createLinearGradient(0, padTop, 0, H - padBottom);
-  grad.addColorStop(0, 'rgba(255,59,48,0.20)');
-  grad.addColorStop(1, 'rgba(255,59,48,0.00)');
+  // ── Build smooth bezier path ──
+  function buildPath(pts) {
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(pts[0].value));
+    for (let i = 0; i < pts.length - 1; i++) {
+      const x0 = px(i),   y0 = py(pts[i].value);
+      const x1 = px(i+1), y1 = py(pts[i+1].value);
+      const cpx = (x0 + x1) / 2;
+      ctx.bezierCurveTo(cpx, y0, cpx, y1, x1, y1);
+    }
+  }
 
-  ctx.beginPath();
-  points.forEach((pt, i) => {
-    const x = px(i), y = py(pt.value);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  // Close fill path
+  // ── Gradient fill ──
+  const grad = ctx.createLinearGradient(0, padTop, 0, H - padBottom);
+  grad.addColorStop(0,   'rgba(255,59,48,0.18)');
+  grad.addColorStop(0.7, 'rgba(255,59,48,0.04)');
+  grad.addColorStop(1,   'rgba(255,59,48,0.00)');
+
+  buildPath(points);
   ctx.lineTo(px(points.length - 1), H - padBottom);
   ctx.lineTo(px(0), H - padBottom);
   ctx.closePath();
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // Line
-  ctx.beginPath();
-  points.forEach((pt, i) => {
-    const x = px(i), y = py(pt.value);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
+  // ── Main line ──
+  buildPath(points);
   ctx.strokeStyle = '#FF3B30';
   ctx.lineWidth = 2;
   ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
+  ctx.lineCap  = 'round';
   ctx.stroke();
 
-  // Dots (only if few points)
-  const showDots = points.length <= 30;
+  // ── Dots ──
+  const showDots = points.length <= 25;
   if (showDots) {
     points.forEach((pt, i) => {
       ctx.beginPath();
-      ctx.arc(px(i), py(pt.value), 3, 0, Math.PI * 2);
+      ctx.arc(px(i), py(pt.value), 2.5, 0, Math.PI * 2);
       ctx.fillStyle = '#FF3B30';
       ctx.fill();
     });
   }
 
-  // First & last value labels
-  const firstY = py(points[0].value);
-  const lastY  = py(points[points.length - 1].value);
+  // ── Tooltip / crosshair ──
+  if (hoverX != null) {
+    // Find closest point
+    let closestIdx = 0, closestDist = Infinity;
+    points.forEach((pt, i) => {
+      const d = Math.abs(px(i) - hoverX);
+      if (d < closestDist) { closestDist = d; closestIdx = i; }
+    });
+    const cp = points[closestIdx];
+    const cx = px(closestIdx);
+    const cy = py(cp.value);
 
-  ctx.font = 'bold 11px -apple-system';
-  ctx.fillStyle = '#F2F2F7';
-  ctx.textAlign = 'left';
-  ctx.fillText(points[0].value + ' кг', padX + 4, Math.max(firstY - 5, padTop + 12));
+    // Vertical crosshair
+    ctx.beginPath();
+    ctx.moveTo(cx, padTop);
+    ctx.lineTo(cx, H - padBottom);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-  ctx.textAlign = 'right';
-  ctx.fillText(points[points.length - 1].value + ' кг', W - padX - 4, Math.max(lastY - 5, padTop + 12));
+    // Highlighted dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#FF3B30';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,59,48,0.2)';
+    ctx.fill();
 
-  // Date labels
+    // Tooltip bubble
+    const label = Fmt.weight(cp.value) + ' кг';
+    const dateLabel = fmtDateHuman(cp.date);
+    const tipW = Math.max(label.length, dateLabel.length) * 6.5 + 18;
+    const tipH = 36;
+    let tipX = cx - tipW / 2;
+    let tipY = cy - tipH - 10;
+    if (tipX < padX) tipX = padX;
+    if (tipX + tipW > W - padX) tipX = W - padX - tipW;
+    if (tipY < 4) tipY = cy + 14;
+
+    ctx.fillStyle = 'rgba(28,28,33,0.95)';
+    ctx.beginPath();
+    const r = 8;
+    if (ctx.roundRect) {
+      ctx.roundRect(tipX, tipY, tipW, tipH, r);
+    } else {
+      ctx.rect(tipX, tipY, tipW, tipH);
+    }
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#F2F2F7';
+    ctx.font = 'bold 12px -apple-system';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, tipX + tipW / 2, tipY + 14);
+    ctx.fillStyle = '#55555F';
+    ctx.font = '9px -apple-system';
+    ctx.fillText(dateLabel, tipX + tipW / 2, tipY + 27);
+    ctx.textAlign = 'left';
+  } else {
+    // Static: first/last labels
+    const firstY = py(points[0].value);
+    const lastY  = py(points[points.length - 1].value);
+    ctx.font = 'bold 11px -apple-system';
+    ctx.fillStyle = '#F2F2F7';
+    ctx.textAlign = 'left';
+    ctx.fillText(Fmt.weight(points[0].value) + ' кг', padX + 2, Math.max(firstY - 6, padTop + 12));
+    ctx.textAlign = 'right';
+    ctx.fillText(Fmt.weight(points[points.length-1].value) + ' кг', W - padX - 2, Math.max(lastY - 6, padTop + 12));
+  }
+
+  // ── Date labels ──
   ctx.font = '10px -apple-system';
   ctx.fillStyle = '#55555F';
   ctx.textAlign = 'left';
@@ -2573,7 +2778,7 @@ function getLastPerformance(exId) {
   if (!sets.length) return null;
 
   // Best set = highest weight
-  const best = sets.reduce((a, b) => (parseFloat(b.w) || 0) > (parseFloat(a.w) || 0) ? b : a);
+  const best = sets.reduce((a, b) => (Fmt.parse(b.w) > Fmt.parse(a.w) ? b : a));
   return { date: lastSession.date, w: best.w, r: best.r };
 }
 
@@ -2582,7 +2787,7 @@ function getBestPerformance(exId) {
   DATA.workoutHistory.forEach(sess => {
     if (sess.sets[exId]) {
       sess.sets[exId].forEach(s => {
-        if (s.w && s.r) allSets.push({ w: parseFloat(s.w), r: parseFloat(s.r), date: sess.date });
+        if (s.w && s.r) allSets.push({ w: Fmt.parse(s.w), r: Fmt.parse(s.r), date: sess.date });
       });
     }
   });
@@ -2636,13 +2841,13 @@ function renderWorkoutDayContent() {
       if (lastPerf) {
         html += `<div class="exercise-last-item">
           <div class="exercise-last-label">Прошлый раз</div>
-          <div class="exercise-last-val">${lastPerf.w} кг × ${lastPerf.r}</div>
+          <div class="exercise-last-val">${Fmt.weight(lastPerf.w)} кг × ${lastPerf.r}</div>
         </div>`;
       }
       if (bestPerf) {
         html += `<div class="exercise-last-item">
           <div class="exercise-last-label">Рекорд ⚡</div>
-          <div class="exercise-last-val pr">${bestPerf.w} кг × ${bestPerf.r}</div>
+          <div class="exercise-last-val pr">${Fmt.weight(bestPerf.w)} кг × ${bestPerf.r}</div>
         </div>`;
       }
       html += `</div>`;
@@ -2949,27 +3154,27 @@ function calcNutrition() {
   const goalLabel = p.surplus > 0 ? 'набор' : p.surplus < 0 ? 'похудение' : 'поддержание';
 
   return {
-    target:  Math.round(target),
-    protein: Math.round(protein),
-    fat:     Math.round(fat),
-    carb:    Math.round(carb),
+    target:  Fmt._r(target,  0),
+    protein: Fmt._r(protein, 0),
+    fat:     Fmt._r(fat,     0),
+    carb:    Fmt._r(carb,    0),
     weight, actLabel, goalLabel
   };
 }
 
 function renderNutrition() {
   const n = calcNutrition();
-  document.getElementById('nutriKcal').textContent = n.target;
-  document.getElementById('nutriP').textContent    = n.protein;
-  document.getElementById('nutriF').textContent    = n.fat;
-  document.getElementById('nutriC').textContent    = n.carb;
+  document.getElementById('nutriKcal').textContent = Fmt.kcal(n.target);
+  document.getElementById('nutriP').textContent    = Fmt.macro(n.protein);
+  document.getElementById('nutriF').textContent    = Fmt.macro(n.fat);
+  document.getElementById('nutriC').textContent    = Fmt.macro(n.carb);
   document.getElementById('nutriExplainText').textContent =
-    `${n.weight} кг · ${n.actLabel} · ${n.goalLabel}`;
+    `${Fmt.weight(n.weight)} кг · ${n.actLabel} · ${n.goalLabel}`;
 
   const today    = todayStr();
   const meals    = DATA.mealLog.find(m => m.date === today);
   const eatenKcal = meals ? meals.items.reduce((a, i) => a + i.kcal, 0) : 0;
-  document.getElementById('todayKcalTag').textContent = `${Math.round(eatenKcal)} / ${n.target} ккал`;
+  document.getElementById('todayKcalTag').textContent = `${Fmt.kcal(eatenKcal)} / ${Fmt.kcal(n.target)} ккал`;
   document.getElementById('kcalBar').style.width = Math.min(100, (eatenKcal / n.target) * 100) + '%';
 
   const listEl = document.getElementById('todayMealsList');
@@ -2979,8 +3184,8 @@ function renderNutrition() {
     listEl.innerHTML = meals.items.map((it, idx) => `
       <div class="food-item">
         <div>
-          <div class="food-name">${h(it.name)} · ${it.grams}г</div>
-          <div class="food-macro">Б${it.p} Ж${it.f} У${it.c} · ${Math.round(it.kcal)} ккал</div>
+          <div class="food-name">${h(it.name)} · ${Fmt.grams(it.grams)}г</div>
+          <div class="food-macro">Б${Fmt.macro(it.p)} Ж${Fmt.macro(it.f)} У${Fmt.macro(it.c)} · ${Fmt.kcal(it.kcal)} ккал</div>
         </div>
         <button class="icon-btn-sm" onclick="removeMealItem(${idx})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -2999,7 +3204,7 @@ function renderNutrition() {
       <div class="food-item">
         <div>
           <div class="food-name">${h(f.name)}</div>
-          <div class="food-macro">Б${f.p} Ж${f.f} У${f.c} на 100г · ${f.kcal} ккал</div>
+          <div class="food-macro">Б${Fmt.macro(f.p)} Ж${Fmt.macro(f.f)} У${Fmt.macro(f.c)} на 100г · ${Fmt.kcal(f.kcal)} ккал</div>
         </div>
         <div style="display:flex;gap:4px">
           <button class="icon-btn-sm" onclick="quickAddFromDb('${h(f.id)}')" title="Добавить в дневник">
@@ -3043,14 +3248,14 @@ function openNutritionSettings() {
 
 function saveNutritionSettings() {
   const p = DATA.profile;
-  p.heightCm     = parseFloat(document.getElementById('nsHeight').value)       || p.heightCm;
-  p.ageYears     = parseFloat(document.getElementById('nsAge').value)           || p.ageYears;
-  p.activity     = parseFloat(document.getElementById('nsActivity').value);
-  p.surplus      = parseFloat(document.getElementById('nsSurplus').value)       || 0;
-  p.proteinPerKg = parseFloat(document.getElementById('nsProtein').value)       || 2.0;
-  p.fatPerKg     = parseFloat(document.getElementById('nsFat').value)           || 1.0;
+  p.heightCm     = Fmt.parse(document.getElementById('nsHeight').value,    p.heightCm);
+  p.ageYears     = Fmt.parse(document.getElementById('nsAge').value,        p.ageYears);
+  p.activity     = Fmt.parse(document.getElementById('nsActivity').value,   1.6);
+  p.surplus      = Fmt.parse(document.getElementById('nsSurplus').value,    0);
+  p.proteinPerKg = Fmt.parse(document.getElementById('nsProtein').value,    2.0);
+  p.fatPerKg     = Fmt.parse(document.getElementById('nsFat').value,        1.0);
   const tw = document.getElementById('nsTargetWeight').value;
-  p.targetWeight = tw ? parseFloat(tw) : null;
+  p.targetWeight = tw ? Fmt.parse(tw) : null;
   saveData(); closeModal(); renderNutrition(); renderHome(); showToast('Сохранено');
 }
 
@@ -3078,16 +3283,16 @@ function addMealItem() {
   const errEl  = document.getElementById('mealGramsErr');
 
   if (!rawVal) { errEl.textContent = 'Введите количество'; errEl.classList.add('visible'); return; }
-  const grams = parseFloat(rawVal);
-  if (isNaN(grams) || grams <= 0) { errEl.textContent = 'Введите значение больше 0'; errEl.classList.add('visible'); return; }
+  const grams = Fmt.parse(rawVal);
+  if (!grams || grams <= 0) { errEl.textContent = 'Введите значение больше 0'; errEl.classList.add('visible'); return; }
   errEl.classList.remove('visible');
 
   const food  = DATA.foodDb.find(f => f.id === foodId);
   const ratio = grams / 100;
   const item  = {
-    foodId, name: food.name, grams,
-    p: round1(food.p * ratio), f: round1(food.f * ratio),
-    c: round1(food.c * ratio), kcal: food.kcal * ratio
+    foodId, name: food.name, grams: Fmt._r(grams, 0),
+    p: Fmt.r1(food.p * ratio), f: Fmt.r1(food.f * ratio),
+    c: Fmt.r1(food.c * ratio), kcal: Fmt._r(food.kcal * ratio, 1)
   };
 
   const today = todayStr();
@@ -3095,7 +3300,9 @@ function addMealItem() {
   if (!meal) { meal = { date: today, items: [] }; DATA.mealLog.push(meal); }
   meal.items.push(item);
 
-  saveData(); closeModal(); renderNutrition(); showToast('Добавлено');
+  saveData(); closeModal(); renderNutrition();
+  logAction('add_meal', `Добавлено: ${food.name} ${Fmt.grams(grams)}г — ${Fmt.kcal(item.kcal)} ккал`, item);
+  showToast('Добавлено');
 }
 
 function quickAddFromDb(foodId) {
@@ -3136,11 +3343,11 @@ function addFoodToDb() {
   if (!name) { showToast('Введите название продукта'); return; }
   DATA.foodDb.push({
     id:   uid('f'), name,
-    cat:  document.getElementById('nFood_cat').value.trim()  || 'Другое',
-    p:    parseFloat(document.getElementById('nFood_p').value)    || 0,
-    f:    parseFloat(document.getElementById('nFood_f').value)    || 0,
-    c:    parseFloat(document.getElementById('nFood_c').value)    || 0,
-    kcal: parseFloat(document.getElementById('nFood_kcal').value) || 0,
+    cat:  document.getElementById('nFood_cat').value.trim()              || 'Другое',
+    p:    Fmt.parse(document.getElementById('nFood_p').value),
+    f:    Fmt.parse(document.getElementById('nFood_f').value),
+    c:    Fmt.parse(document.getElementById('nFood_c').value),
+    kcal: Fmt.parse(document.getElementById('nFood_kcal').value),
   });
   saveData(); closeModal(); renderNutrition(); showToast('Продукт добавлен');
 }
@@ -3173,11 +3380,11 @@ function renderMeasure() {
       <div>
         <div class="history-name">${fmtDateHuman(m.date)}</div>
         <div class="history-meta">
-          ${m.weight ? 'Вес: ' + m.weight + ' кг' : ''}
-          ${m.bicep  ? ' · Бицепс ' + m.bicep  + ' см' : ''}
-          ${m.chest  ? ' · Грудь '  + m.chest  + ' см' : ''}
-          ${m.waist  ? ' · Талия '  + m.waist  + ' см' : ''}
-          ${m.thigh  ? ' · Бедро '  + m.thigh  + ' см' : ''}
+          ${m.weight ? 'Вес: ' + Fmt.weight(m.weight) + ' кг' : ''}
+          ${m.bicep  ? ' · Бицепс ' + Fmt.cm(m.bicep)  + ' см' : ''}
+          ${m.chest  ? ' · Грудь '  + Fmt.cm(m.chest)  + ' см' : ''}
+          ${m.waist  ? ' · Талия '  + Fmt.cm(m.waist)  + ' см' : ''}
+          ${m.thigh  ? ' · Бедро '  + Fmt.cm(m.thigh)  + ' см' : ''}
         </div>
         ${m.note ? `<div style="font-size:11px;color:var(--accent);margin-top:2px">${h(m.note)}</div>` : ''}
       </div>
@@ -3210,7 +3417,7 @@ function drawMeasureChart() {
   } else {
     points = DATA.measurements
       .filter(m => m[measureMetric] != null && m[measureMetric] !== '')
-      .map(m => ({ date: m.date, value: parseFloat(m[measureMetric]) }));
+      .map(m => ({ date: m.date, value: Fmt.parse(m[measureMetric]) }));
   }
   points.sort((a, b) => a.date.localeCompare(b.date));
 
@@ -3228,7 +3435,7 @@ function checkMeasureForm() {
   const ids = ['measWeight','measBicep','measChest','measWaist','measThigh'];
   const hasAny = ids.some(id => {
     const v = document.getElementById(id).value;
-    return v !== '' && !isNaN(parseFloat(v));
+    return v !== '' && isFinite(Fmt.parse(v));
   });
   const btn = document.getElementById('measSaveBtn');
   btn.disabled = !hasAny;
@@ -3242,14 +3449,15 @@ function saveMeasurement() {
     return;
   }
   const date   = document.getElementById('measDate').value || todayStr();
-  const weight = parseFloat(document.getElementById('measWeight').value) || null;
+  const weight = Fmt.parse(document.getElementById('measWeight').value) || null;
   const m = {
-    date, weight,
-    bicep: document.getElementById('measBicep').value || null,
-    chest: document.getElementById('measChest').value || null,
-    waist: document.getElementById('measWaist').value || null,
-    thigh: document.getElementById('measThigh').value || null,
-    note:  document.getElementById('measNote').value.trim()
+    date,
+    weight: weight ? Fmt.r1(weight) : null,
+    bicep:  document.getElementById('measBicep').value ? Fmt.r1(Fmt.parse(document.getElementById('measBicep').value)) : null,
+    chest:  document.getElementById('measChest').value ? Fmt.r1(Fmt.parse(document.getElementById('measChest').value)) : null,
+    waist:  document.getElementById('measWaist').value ? Fmt.r1(Fmt.parse(document.getElementById('measWaist').value)) : null,
+    thigh:  document.getElementById('measThigh').value ? Fmt.r1(Fmt.parse(document.getElementById('measThigh').value)) : null,
+    note:   document.getElementById('measNote').value.trim()
   };
 
   DATA.measurements = DATA.measurements.filter(x => x.date !== date);
@@ -3265,6 +3473,7 @@ function saveMeasurement() {
   }
 
   saveData();
+  logAction('add_measure', `Добавлен замер за ${fmtDateHuman(date)}` + (m.weight ? `, вес ${Fmt.weight(m.weight)} кг` : ''), m);
   ['measWeight','measBicep','measChest','measWaist','measThigh','measNote'].forEach(id => {
     document.getElementById(id).value = '';
   });
@@ -3711,8 +3920,394 @@ function confirmRestore() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// RENDER ALL
+// AUTOSAVE DRAFT
 // ═══════════════════════════════════════════════════════════
+const DRAFT_KEY = 'gymdiary_draft_weight';
+
+function autosaveWeightDraft(val) {
+  try { localStorage.setItem(DRAFT_KEY, val); } catch(e) {}
+}
+
+function loadWeightDraft() {
+  try {
+    const v = localStorage.getItem(DRAFT_KEY);
+    if (v) {
+      const el = document.getElementById('quickWeightInput');
+      if (el && !el.value) el.value = v;
+    }
+  } catch(e) {}
+}
+
+function clearWeightDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTIVITY LOG (журнал действий)
+// ═══════════════════════════════════════════════════════════
+function logAction(type, description, payload) {
+  if (!DATA.activityLog) DATA.activityLog = [];
+  DATA.activityLog.unshift({
+    id:   uid('log'),
+    ts:   new Date().toISOString(),
+    type,          // 'add_weight' | 'delete_weight' | 'add_measure' | 'delete_measure' | 'add_meal' | 'delete_session' | etc
+    desc: description,
+    payload        // что было (для возможного восстановления)
+  });
+  // Ограничиваем лог 200 записями
+  if (DATA.activityLog.length > 200) DATA.activityLog.length = 200;
+}
+
+function openActivityLog() {
+  if (!DATA.activityLog || !DATA.activityLog.length) {
+    openModal(`
+      <div class="modal-header">
+        <h3 class="modal-title">Журнал действий</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="empty-state"><div class="empty-state-icon">📋</div>
+        <div class="empty-state-text">Журнал пока пуст</div></div>`);
+    return;
+  }
+  const icons = {
+    add_weight:'⚖️', delete_weight:'🗑️',
+    add_measure:'📏', delete_measure:'🗑️',
+    add_meal:'🍽️', delete_meal:'🗑️',
+    add_session:'🏋️', delete_session:'🗑️',
+    add_exercise:'💪', delete_exercise:'🗑️',
+    restore:'↩️', add_food:'🥦', delete_food:'🗑️',
+  };
+  const rows = DATA.activityLog.slice(0, 100).map(e => {
+    const dt = new Date(e.ts);
+    const time = dt.toLocaleTimeString('ru', { hour:'2-digit', minute:'2-digit' });
+    const date = dt.toLocaleDateString('ru', { day:'numeric', month:'short' });
+    const icon = icons[e.type] || '•';
+    return `<div class="food-item">
+      <div>
+        <div class="food-name">${icon} ${h(e.desc)}</div>
+        <div class="food-macro">${date}, ${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  openModal(`
+    <div class="modal-header">
+      <h3 class="modal-title">Журнал действий</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div style="max-height:65vh;overflow-y:auto">${rows}</div>`);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TRASH (корзина — хранение 30 дней)
+// ═══════════════════════════════════════════════════════════
+function moveToTrash(type, label, payload) {
+  if (!DATA.trash) DATA.trash = [];
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+  DATA.trash.unshift({
+    id: uid('tr'),
+    type,
+    label,
+    payload,
+    deletedAt:  new Date().toISOString(),
+    expiresAt:  expiresAt.toISOString()
+  });
+  // Чистим просроченные
+  const now = new Date().toISOString();
+  DATA.trash = DATA.trash.filter(t => t.expiresAt > now);
+}
+
+function openTrash() {
+  if (!DATA.trash) DATA.trash = [];
+  // Очищаем просроченные
+  const now = new Date().toISOString();
+  DATA.trash = DATA.trash.filter(t => t.expiresAt > now);
+
+  if (!DATA.trash.length) {
+    openModal(`
+      <div class="modal-header">
+        <h3 class="modal-title">Корзина</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="empty-state">
+        <div class="empty-state-icon">🗑️</div>
+        <div class="empty-state-text">Корзина пуста.<br>Удалённые данные хранятся 30 дней.</div>
+      </div>`);
+    return;
+  }
+
+  const rows = DATA.trash.map(t => {
+    const daysLeft = Math.ceil((new Date(t.expiresAt) - new Date()) / (24*3600*1000));
+    return `<div class="history-item">
+      <div>
+        <div class="history-name">${h(t.label)}</div>
+        <div class="history-meta">Удалено ${fmtDateHuman(t.deletedAt.slice(0,10))} · осталось ${daysLeft} дн.</div>
+      </div>
+      <button class="icon-btn-sm" style="color:var(--green)" onclick="restoreFromTrash('${h(t.id)}')" title="Восстановить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.46"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+
+  openModal(`
+    <div class="modal-header">
+      <h3 class="modal-title">Корзина</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <p class="helper-text" style="margin-bottom:12px">Удалённые данные хранятся 30 дней. После истечения срока восстановление невозможно.</p>
+    ${rows}`);
+}
+
+function restoreFromTrash(trashId) {
+  if (!DATA.trash) return;
+  const item = DATA.trash.find(t => t.id === trashId);
+  if (!item) return;
+
+  let restored = false;
+  if (item.type === 'weight') {
+    // Восстанавливаем запись веса, если её уже нет
+    if (!DATA.weightLog.find(w => w.date === item.payload.date)) {
+      DATA.weightLog.push(item.payload);
+      DATA.weightLog.sort((a, b) => a.date.localeCompare(b.date));
+      restored = true;
+    }
+  } else if (item.type === 'measurement') {
+    if (!DATA.measurements.find(m => m.date === item.payload.date)) {
+      DATA.measurements.push(item.payload);
+      DATA.measurements.sort((a, b) => a.date.localeCompare(b.date));
+      restored = true;
+    }
+  } else if (item.type === 'session') {
+    if (!DATA.workoutHistory.find(s => s.id === item.payload.id)) {
+      DATA.workoutHistory.push(item.payload);
+      restored = true;
+    }
+  } else if (item.type === 'meal_item') {
+    const meal = DATA.mealLog.find(m => m.date === item.payload.date);
+    if (meal) { meal.items.push(item.payload.item); restored = true; }
+    else { DATA.mealLog.push({ date: item.payload.date, items: [item.payload.item] }); restored = true; }
+  }
+
+  if (restored) {
+    DATA.trash = DATA.trash.filter(t => t.id !== trashId);
+    logAction('restore', `Восстановлено: ${item.label}`, item.payload);
+    saveData();
+    closeModal();
+    renderAll();
+    showToast('Восстановлено');
+  } else {
+    showToast('Запись уже существует');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// WEIGHT HISTORY (список всех записей с удалением)
+// ═══════════════════════════════════════════════════════════
+function openWeightHistory() {
+  if (!DATA.weightLog.length) {
+    openModal(`
+      <div class="modal-header">
+        <h3 class="modal-title">История веса</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="empty-state"><div class="empty-state-text">Записей пока нет</div></div>`);
+    return;
+  }
+
+  const rows = [...DATA.weightLog].reverse().map(w => `
+    <div class="history-item" id="wrow-${h(w.date)}">
+      <div>
+        <div class="history-name mono">${Fmt.weight(w.weight)} кг</div>
+        <div class="history-meta">${fmtDateHuman(w.date)}</div>
+      </div>
+      <button class="icon-btn-sm" onclick="deleteWeightEntry('${h(w.date)}')" title="Удалить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>`).join('');
+
+  openModal(`
+    <div class="modal-header">
+      <h3 class="modal-title">История веса</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div style="max-height:70vh;overflow-y:auto">${rows}</div>`);
+}
+
+function deleteWeightEntry(date) {
+  const entry = DATA.weightLog.find(w => w.date === date);
+  if (!entry) return;
+  moveToTrash('weight', `Вес ${Fmt.weight(entry.weight)} кг (${fmtDateHuman(date)})`, structuredClone(entry));
+  logAction('delete_weight', `Удалён вес ${Fmt.weight(entry.weight)} кг за ${fmtDateHuman(date)}`, entry);
+  DATA.weightLog = DATA.weightLog.filter(w => w.date !== date);
+  // Обновляем currentWeight
+  if (DATA.weightLog.length) DATA.meta.currentWeight = DATA.weightLog[DATA.weightLog.length-1].weight;
+  saveData();
+  // Убираем строку из открытого модала без перерендера
+  const row = document.getElementById('wrow-' + date);
+  if (row) row.remove();
+  // Обновляем графики
+  drawWeightChart();
+  renderHeader();
+  renderProgressBlock(DATA.weightLog.length ? DATA.weightLog[DATA.weightLog.length-1].weight : 0);
+  showUndoBar(`Вес за ${fmtDateHuman(date)} удалён`);
+  pendingDelete = { type: 'weight', entry: structuredClone(entry) };
+}
+
+// ═══════════════════════════════════════════════════════════
+// РАСШИРЕННЫЙ UNDO (вес, замеры, сессии, еда)
+// ═══════════════════════════════════════════════════════════
+// Переопределяем undoLastDelete для поддержки всех типов
+const _origUndoLastDelete = undoLastDelete;
+// (переопределим ниже после объявления функций)
+
+// ═══════════════════════════════════════════════════════════
+// SKELETON CSS (добавляем динамически)
+// ═══════════════════════════════════════════════════════════
+(function injectSkeletonCSS() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.4s ease infinite;
+      border-radius: var(--r-sm);
+    }
+    @keyframes skeleton-shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton-text  { height: 14px; margin: 6px 0; }
+    .skeleton-title { height: 20px; width: 60%; margin-bottom: 12px; }
+    .skeleton-kpi   { height: 44px; border-radius: var(--r-md); }
+    .skeleton-card  { background: var(--surface-1); border: 1px solid var(--glass-border);
+                      border-radius: var(--r-xl); padding: 18px; margin-bottom: 12px; }
+  `;
+  document.head.appendChild(style);
+})();
+
+function skeletonCard(rows) {
+  return `<div class="skeleton-card">
+    <div class="skeleton skeleton-title"></div>
+    ${Array(rows).fill('<div class="skeleton skeleton-text"></div>').join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// РАСШИРЯЕМ deleteSession, deleteMeasurement, removeMealItem
+// чтобы они тоже кидали в корзину + журнал + undo
+// ═══════════════════════════════════════════════════════════
+// Патчим deleteSession
+const _origDeleteSession = deleteSession;
+function deleteSession(id) {
+  const sess = DATA.workoutHistory.find(s => s.id === id);
+  if (sess) {
+    moveToTrash('session', `Тренировка «${sess.dayName}» ${fmtDateHuman(sess.date)}`, structuredClone(sess));
+    logAction('delete_session', `Удалена тренировка «${sess.dayName}» ${fmtDateHuman(sess.date)}`, sess);
+    pendingDelete = { type: 'session', session: structuredClone(sess) };
+  }
+  DATA.workoutHistory = DATA.workoutHistory.filter(s => s.id !== id);
+  saveData(); renderWorkoutHistory(); renderHome();
+  if (sess) showUndoBar(`Тренировка «${sess.dayName}» удалена`);
+}
+
+// Патчим deleteMeasurement
+const _origDeleteMeasurement = deleteMeasurement;
+function deleteMeasurement(date) {
+  const m = DATA.measurements.find(x => x.date === date);
+  if (m) {
+    moveToTrash('measurement', `Замер ${fmtDateHuman(date)}`, structuredClone(m));
+    logAction('delete_measure', `Удалён замер за ${fmtDateHuman(date)}`, m);
+    pendingDelete = { type: 'measurement', entry: structuredClone(m) };
+  }
+  DATA.measurements = DATA.measurements.filter(m => m.date !== date);
+  saveData(); renderMeasure();
+  if (m) showUndoBar(`Замер за ${fmtDateHuman(date)} удалён`);
+}
+
+// Патчим removeMealItem
+const _origRemoveMealItem = removeMealItem;
+function removeMealItem(idx) {
+  const today = todayStr();
+  const meal  = DATA.mealLog.find(m => m.date === today);
+  if (meal && meal.items[idx]) {
+    const item = meal.items[idx];
+    moveToTrash('meal_item', `${item.name} ${Fmt.grams(item.grams)}г`, { date: today, item: structuredClone(item) });
+    logAction('delete_meal', `Удалено: ${item.name} ${Fmt.grams(item.grams)}г`, item);
+    pendingDelete = { type: 'meal_item', date: today, item: structuredClone(item) };
+    meal.items.splice(idx, 1);
+    saveData(); renderNutrition();
+    showUndoBar(`«${item.name}» удалено`);
+  }
+}
+
+// Расширяем undoLastDelete для всех типов
+function undoLastDelete() {
+  if (!pendingDelete) return;
+  clearTimeout(undoTimer);
+  document.getElementById('undoBar').classList.remove('show');
+
+  const pd = pendingDelete;
+  pendingDelete = null;
+
+  if (pd.type === 'exercise') {
+    const day = DATA.workoutDays.find(d => d.id === pd.dayId);
+    if (day) {
+      day.exercises.splice(pd.index, 0, pd.exercise);
+      saveData(); renderWorkoutDayContent(); showToast('Упражнение восстановлено');
+    }
+  } else if (pd.type === 'weight') {
+    if (!DATA.weightLog.find(w => w.date === pd.entry.date)) {
+      DATA.weightLog.push(pd.entry);
+      DATA.weightLog.sort((a, b) => a.date.localeCompare(b.date));
+      DATA.meta.currentWeight = DATA.weightLog[DATA.weightLog.length-1].weight;
+      // Убираем из корзины
+      if (DATA.trash) DATA.trash = DATA.trash.filter(t => !(t.type==='weight' && t.payload.date===pd.entry.date));
+      saveData(); renderAll(); showToast('Вес восстановлен');
+    }
+  } else if (pd.type === 'measurement') {
+    if (!DATA.measurements.find(m => m.date === pd.entry.date)) {
+      DATA.measurements.push(pd.entry);
+      DATA.measurements.sort((a, b) => a.date.localeCompare(b.date));
+      if (DATA.trash) DATA.trash = DATA.trash.filter(t => !(t.type==='measurement' && t.payload.date===pd.entry.date));
+      saveData(); renderAll(); showToast('Замер восстановлен');
+    }
+  } else if (pd.type === 'session') {
+    if (!DATA.workoutHistory.find(s => s.id === pd.session.id)) {
+      DATA.workoutHistory.push(pd.session);
+      if (DATA.trash) DATA.trash = DATA.trash.filter(t => !(t.type==='session' && t.payload.id===pd.session.id));
+      saveData(); renderAll(); showToast('Тренировка восстановлена');
+    }
+  } else if (pd.type === 'meal_item') {
+    let meal = DATA.mealLog.find(m => m.date === pd.date);
+    if (!meal) { meal = { date: pd.date, items: [] }; DATA.mealLog.push(meal); }
+    meal.items.push(pd.item);
+    if (DATA.trash) DATA.trash = DATA.trash.filter(t => t.type !== 'meal_item');
+    saveData(); renderNutrition(); showToast('Запись восстановлена');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ЛОГИРОВАНИЕ ДОБАВЛЕНИЙ (дополняем существующие функции)
+// ═══════════════════════════════════════════════════════════
+const _origQuickSaveWeight = quickSaveWeight;
+function quickSaveWeight() {
+  const val = Fmt.parse(document.getElementById('quickWeightInput').value);
+  if (!val || val <= 0) { showToast('Введите корректный вес'); return; }
+  const rounded = Fmt.r1(val);
+  const today = todayStr();
+  const existing = DATA.weightLog.find(w => w.date === today);
+  const isUpdate = !!existing;
+  if (existing) { existing.weight = rounded; }
+  else { DATA.weightLog.push({ date: today, weight: rounded }); DATA.weightLog.sort((a, b) => a.date.localeCompare(b.date)); }
+  DATA.meta.currentWeight = rounded;
+  logAction('add_weight', `${isUpdate ? 'Обновлён' : 'Добавлен'} вес: ${Fmt.weight(rounded)} кг`, { date: today, weight: rounded });
+  if (!DATA.activityLog) DATA.activityLog = [];
+  saveData();
+  clearWeightDraft();
+  showToast('Вес сохранён: ' + Fmt.weight(rounded) + ' кг');
+  renderAll();
+}
 function renderAll() {
   renderHeader();
   if (currentView === 'home') {
@@ -3732,6 +4327,7 @@ function renderAll() {
 
 // ─── Init ───
 renderAll();
+loadWeightDraft();
 
 // ─── Resize handler for charts ───
 let resizeTimer;
